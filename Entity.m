@@ -1,0 +1,269 @@
+classdef Entity < handle
+    properties
+        % Default type is undefined, which means the entity is not initialized
+        id = 0;
+        type (1,:) = 'undefined';
+        n = 32;
+
+        % r: radius, h:height, t:top, b:bottom
+        % x:axis-x, y:axis-y, z:axis-z
+        pos(1, 3) double = [0, 0, 0];               % The center of mass of entity
+        cen(1, 6) double = [NaN, NaN, NaN, NaN, NaN, NaN];      % Top and bottom face center of entity
+        rad(1, 4) double = [0, 0, 0, 0];            % Top and bottom radius of entity
+        rot(1, 3) double = [0, 0, 0];               % Posture of entity[x, y, z]
+        rottb(1, 6) double = [0, 0, 0, 0, 0, 0];    % Top and bottom face tilt of entity
+        size(1, 3) double = [0, 0, 0];              % Size of entity[x, y, z]
+        color(1, 3) double = [0.4, 0.6, 0.8];       % The color of entity
+        alignMode = 'midaxis';
+
+        %% Surface handle
+        face_h = [];
+    end
+
+    methods
+        % Constructor, initialize the entity with default values
+        function obj = Entity(type, id)
+            if ~Entity.supportChk(type)
+                error('Type %s is not supported', type);
+            else
+                obj.id = id;
+                obj.type = type;
+            end
+        end
+
+        % Set the position of the entity, mass center is [x, y, z]
+        % pos: [3, 1) double
+        function setPos(obj, pos)
+            obj.pos = pos;
+        end
+
+        % Set the top and bottom face center of the entity
+        % rad: [4, 1) double
+        % rad(rta, rtb, rba, rbt)
+        function setRad(obj, varargin)
+            % frustum use 4 radius, top and bottom radius
+            if obj.typeChk('frustum')
+                disp(varargin);
+                if nargin == 2
+                    obj.rad = [varargin{1}, varargin{1}, varargin{1}, varargin{1}];
+                elseif nargin == 3
+                    obj.rad = [varargin{1}, varargin{1}, varargin{2}, varargin{2}];
+                elseif nargin == 5
+                    obj.rad = [varargin{:}];
+                end
+                % disp(obj.rad);
+            end
+        end
+
+        % Set height of the entity
+        % h: double
+        function setHeight(obj, h)
+            % frustum use 1 height, it is z-axis size
+            if obj.typeChk('frustum')
+                obj.size(3) = h;
+            end
+        end
+
+        % Set the size of the entity
+        % size: [3, 1) double
+        function setSize(obj, varargin)
+            if obj.typeChk('frustum')
+                if nargin == 3
+                    obj.size = [varargin{1}, varargin{1}, varargin{2}];
+                elseif nargin == 4
+                    obj.size = [varargin{1}, varargin{2}, varargin{3}];
+                end
+            end
+        end
+
+        % Set the top and bottom face center of the entity
+        % cen: [6, 1) double
+        function setCen(obj, varargin)
+            if obj.typeChk('frustum')
+                if nargin == 4
+                    obj.cen = [varargin{1}, varargin{2}, varargin{3}, varargin{1}, varargin{2}, varargin{3} + obj.size(3)];
+                elseif nargin == 7
+                    obj.cen = [varargin{1}, varargin{2}, varargin{3}, varargin{4}, varargin{5}, varargin{6}];
+                    % Adjust the height of the frustum, to make the top and bottom face center aligned
+                    obj.size(3) = varargin{7} - varargin{3};
+                end
+            end
+        end
+
+        % Set the top and bottom face tilt of the entity
+        % rottb: [6, 1) double, unit is rad
+        function setRotTb(obj, varargin)
+            if obj.typeChk('frustum')
+                if nargin == 7
+                    obj.rottb = [varargin{:}];
+                else
+                    error('Number of input arguments must be 6');
+                end
+            end
+        end
+
+        % Check the type of the entity
+        function res = typeChk(obj, type)
+            res = strcmpi(obj.type, type);
+            if ~res
+                error('Type of the entity is not %s', type);
+            end
+        end
+
+        % Get the size of the entity
+        % res: [3, 1) double
+        function res = getSize(obj)
+            res = obj.size;
+        end
+
+        % Show the size of the entity
+        function res = showSize(obj)
+            res = obj.size;
+            disp(['Size of the entity ', obj.type, ' is: ', num2str(res)]);
+        end
+
+        % Render the entity in the figure
+        function render(obj)
+            if strcmp(obj.type, 'frustum')
+                % Render the frustum in the figure
+                obj.drawFrustum();
+            end
+        end
+
+        function drawFrustum(obj)
+            % obj: Frustum entity object
+
+            a_top = obj.rad(1);      % Top face major axis radius
+            b_top = obj.rad(2);      % Top face minor axis radius
+            a_bottom = obj.rad(3);   % Bottom face major axis radius
+            b_bottom = obj.rad(4);   % Bottom face minor axis radius
+
+            tilt_bottom = obj.rottb(1:3);  % Bottom face local tilt [theta, phi, psi]
+            tilt_top = obj.rottb(4:6);     % Top face local tilt [theta, phi, psi]
+
+            % disp(tilt_bottom)
+            % disp(tilt_top)
+
+            % Calculate bottom and top face center position
+            % Get the center position from cen(1:3) and cen(4:6) respectively
+            pos_bottom = obj.cen(1:3);
+            pos_top = obj.cen(4:6);
+
+            % Generate ellipse cross-section
+            theta = linspace(0, 2*pi, obj.n);
+
+            % Bottom face ellipse (local coordinates)
+            x_b = a_bottom * cos(theta);
+            y_b = b_bottom * sin(theta);
+            z_b = zeros(1, obj.n);
+
+            % Top face ellipse (local coordinates)
+            x_t = a_top * cos(theta);
+            y_t = b_top * sin(theta);
+            z_t = zeros(1, obj.n);
+
+            % Local rotation
+            R_b = obj.eulerRotation(tilt_bottom);
+            R_t = obj.eulerRotation(tilt_top);
+
+            pts_b = R_b * [x_b; y_b; z_b] + pos_bottom(:);
+            pts_t = R_t * [x_t; y_t; z_t] + pos_top(:);
+
+            % ========== 4. 根据 alignMode 对齐到 pos ==========
+            switch obj.alignMode
+                case 'centroid'
+                    allPts = [pts_b, pts_t];
+                    center = mean(allPts, 2)';
+                case 'midaxis'
+                    center = (pos_bottom + pos_top) / 2;
+                case 'bottom'
+                    center = pos_bottom;
+                case 'top'
+                    center = pos_top;
+                otherwise
+                    center = (pos_bottom + pos_top) / 2;  % default midaxis
+            end
+
+            offset = obj.pos(:) - center(:);
+            pts_b = pts_b + offset;
+            pts_t = pts_t + offset;
+
+            % Global rotation
+            R_global = obj.eulerRotation(obj.rot);
+
+            pts_b_shifted = pts_b - obj.pos(:);
+            pts_t_shifted = pts_t - obj.pos(:);
+
+            pts_b = R_global * pts_b_shifted + obj.pos(:);
+            pts_t = R_global * pts_t_shifted + obj.pos(:);
+
+            % Bottom face
+            X_bottom = pts_b(1, :);
+            Y_bottom = pts_b(2, :);
+            Z_bottom = pts_b(3, :);
+
+            % Top face
+            X_top = pts_t(1, :);
+            Y_top = pts_t(2, :);
+            Z_top = pts_t(3, :);
+
+            % Side face
+            X = [X_bottom; X_top];
+            Y = [Y_bottom; Y_top];
+            Z = [Z_bottom; Z_top];
+
+            % Render on canvas
+            hold on;
+            obj.face_h =[obj.face_h; surf(X, Y, Z, 'FaceColor', obj.color, 'EdgeColor', 'none', 'FaceAlpha', 0.8)];
+            obj.face_h =[obj.face_h; fill3(X_bottom, Y_bottom, Z_bottom, obj.color, 'FaceAlpha', 0.9)];
+            obj.face_h =[obj.face_h; fill3(X_top, Y_top, Z_top, obj.color, 'FaceAlpha', 0.9)];
+        end
+
+        % Euler rotation matrix
+        function R = eulerRotation(~, angles)
+            % angles = [theta, phi, psi] around Z, Y, X axis
+            theta = angles(1);  % Around Z axis
+            phi = angles(2);    % Around Y axis
+            psi = angles(3);    % Around X axis
+
+            Rz = [cos(theta) -sin(theta) 0;
+                sin(theta)  cos(theta) 0;
+                0           0          1];
+
+            Ry = [cos(phi)  0 sin(phi);
+                0         1 0;
+                -sin(phi) 0 cos(phi)];
+
+            Rx = [1 0         0;
+                0 cos(psi) -sin(psi);
+                0 sin(psi)  cos(psi)];
+
+            R = Rz * Ry * Rx;  % Order: Rx * Ry * Rz
+        end
+    end
+
+    methods (Static)
+        % Check the type of the entity
+        function res = typeList()
+            types ={'frustum';
+                'sphere';
+                'cube';
+                'cycle';
+                'triangle';
+                'tetragonum'};
+
+            res = types;
+        end
+
+        % Check support of the type
+        function res = supportChk(type)
+            types = Entity.typeList();
+            if any(strcmpi(types, type))
+                res = true;
+            else
+                res = false;
+            end
+        end
+
+    end
+end

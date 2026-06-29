@@ -1,38 +1,28 @@
+% This is a class to manage the entity in the figure
 classdef GeoEntity < handle
-    enumeration
-        notdefined({0, 'undefined'})    % [id, name]
-        cylinder({1, 'cylinder'})       % [id, name]
-        sphere({2, 'sphere'})           % [id, name]
-        cube({3, 'cube'})               % [id, name]
-        cycle({4, 'cycle'})             % [id, name]
-        triangle({5, 'triangle'})       % [id, name]
-        tetragonum({6, 'tetragonum'})   % [id, name]
-    end
-
     properties
-        % Default type is undefined, which means the entity is not initialized
-        type = {};
+        % Count of the entity in the list
+        % Default value is 0
+        count = 0;
 
-        % r: radius, h:height, t:top, b:bottom
-        % x:axis-x, y:axis-y, z:axis-z
-        pos(1, 3) double = [0, 0, 0];               % The center of mass of entity
-        cen(1, 6) double = [0, 0, 0, 1, 1, 1];      % Top and bottom face center of entity
-        rad(1, 2) double = [1, 1];                  % Top and bottom radius of entity
-        rot(1, 3) double = [0, 0, 0];               % Posture of entity[x, y, z]
-        color(1, 3) double = [0.4, 0.6, 0.8];       % The color of entity
+        % List of the entity in the list
+        % Default value is empty matrix
+        entityList = [];
     end
-
     methods
-        % Constructor, initialize the entity with default values
-        function obj = GeoEntity(type)
-            obj.type = type;
+        function obj = GeoEntity()
         end
-    end
 
-    methods (Static)
-        function list = getAll()
-            e = enumeration('ShapeType');
-            list = string(e);
+        function ent = Create(obj, type)
+            ent = Entity(type, obj.count);
+            obj.count = obj.count + 1;
+            obj.entityList = [obj.entityList; ent];
+        end
+
+        function renderAll(obj)
+            for i = 1:obj.count
+                obj.entityList(i).render();
+            end
         end
     end
 end
