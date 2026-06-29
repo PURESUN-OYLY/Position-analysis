@@ -1,5 +1,10 @@
 *
+
+# Ignore files
 !.gitignore
+
+# Track MATLAB files
 !*.m
 
-!MATLAB.prj
+# Track project file
+!*.prj
