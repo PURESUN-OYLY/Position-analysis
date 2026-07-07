@@ -8,7 +8,7 @@ classdef Entity < handle
         % r: radius, h:height, t:top, b:bottom
         % x:axis-x, y:axis-y, z:axis-z
         pos(1, 3) double = [0, 0, 0];               % The center of mass of entity
-        cen(1, 6) double = [NaN, NaN, NaN, NaN, NaN, NaN];      % Top and bottom face center of entity
+        cen(1, 6) double = [0, 0, 0, 0, 0, 0];      % Top and bottom face center of entity
         rad(1, 4) double = [0, 0, 0, 0];            % Top and bottom radius of entity
         rot(1, 3) double = [0, 0, 0];               % Posture of entity[x, y, z]
         rottb(1, 6) double = [0, 0, 0, 0, 0, 0];    % Top and bottom face tilt of entity
@@ -61,6 +61,9 @@ classdef Entity < handle
             % frustum use 1 height, it is z-axis size
             if obj.typeChk('frustum')
                 obj.size(3) = h;
+                % Auto set top and bottom face center
+                obj.cen(1:3) = obj.pos;
+                obj.cen(4:6) = obj.pos + [0, 0, h];
             end
         end
 
@@ -73,6 +76,16 @@ classdef Entity < handle
                 elseif nargin == 4
                     obj.size = [varargin{1}, varargin{2}, varargin{3}];
                 end
+            end
+        end
+
+        % Set align mode of the entity
+        % alignMode: string, default is 'midaxis', 'centroid', 'bottom_cen', 'top_cen'
+        function setAlignMode(obj, alignMode)
+            if strcmpi(alignMode, 'midaxis') || strcmpi(alignMode, 'centroid') || strcmpi(alignMode, 'bottom_cen') || strcmpi(alignMode, 'top_cen')
+                obj.alignMode = alignMode;
+            else
+                error('Align mode %s is not supported', alignMode);
             end
         end
 
@@ -176,9 +189,9 @@ classdef Entity < handle
                     center = mean(allPts, 2)';
                 case 'midaxis'
                     center = (pos_bottom + pos_top) / 2;
-                case 'bottom'
+                case 'bottom_cen'
                     center = pos_bottom;
-                case 'top'
+                case 'top_cen'
                     center = pos_top;
                 otherwise
                     center = (pos_bottom + pos_top) / 2;  % default midaxis
