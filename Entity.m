@@ -43,7 +43,7 @@ classdef Entity < handle
         function setRad(obj, varargin)
             % frustum use 4 radius, top and bottom radius
             if obj.typeChk('frustum')
-                disp(varargin);
+                % disp(varargin);
                 if nargin == 2
                     obj.rad = [varargin{1}, varargin{1}, varargin{1}, varargin{1}];
                 elseif nargin == 3
@@ -239,17 +239,17 @@ classdef Entity < handle
             phi = angles(2);    % Around Y axis
             psi = angles(3);    % Around X axis
 
-            Rz = [cos(theta) -sin(theta) 0;
-                sin(theta)  cos(theta) 0;
-                0           0          1];
+            Rz = [cos(theta)  -sin(theta)  0;
+                  sin(theta)   cos(theta)  0;
+                  0            0           1];
 
-            Ry = [cos(phi)  0 sin(phi);
-                0         1 0;
-                -sin(phi) 0 cos(phi)];
+            Ry = [cos(phi)  0  sin(phi);
+                  0         1  0;
+                 -sin(phi)  0  cos(phi)];
 
-            Rx = [1 0         0;
-                0 cos(psi) -sin(psi);
-                0 sin(psi)  cos(psi)];
+            Rx = [1  0         0;
+                  0  cos(psi) -sin(psi);
+                  0  sin(psi)  cos(psi)];
 
             R = Rz * Ry * Rx;  % Order: Rx * Ry * Rz
         end

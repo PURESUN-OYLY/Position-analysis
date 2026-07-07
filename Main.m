@@ -8,6 +8,10 @@ close all;  % Close all the figure
 axis equal; % Set the axis equal, to show the entity in the same size
 axis vis3d;
 
+%% Base config
+lidarFOV = [120 90];
+lidarRange = [0 70];
+
 view(45, 30);
 
 geoEnt = GeoEntity();
@@ -35,6 +39,17 @@ obj3.setAlignMode('bottom_cen')
 
 
 % disp(obj1.pos)
-% disp(geoEnt.count)
+disp(['Total entity: ', num2str(geoEnt.count)])
 
 geoEnt.renderAll();
+
+% Config the lidar point cloud generator as AC1_lidar
+lidar = lidarPointCloudGenerator(...
+    'AzimuthResolution', 0.625, ...                         % Horizontal resolution (degree)
+    'ElevationResolution', 0.625, ...                       % Vertical resolution (degree)
+    'AzimuthLimits', [-lidarFOV(1)/2 lidarFOV(1)/2], ...    % Horizontal field of view (degree)
+    'ElevationLimits', [-lidarFOV(2)/2 lidarFOV(2)/2], ...  % Vertical field of view (degree)
+    'MaxRange', lidarRange(2), ...                          % Maximum range (meter)
+    'HasNoise', false, ...                                  % Enable noise (more realistic)
+    'HasOrganizedOutput', true, ...                         % Organized output (similar to image grid)
+    'HasEgoVehicle', false);                                % No ego vehicle point cloud
