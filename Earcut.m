@@ -13,39 +13,53 @@ X = pts(1, :);
 Y = pts(2, :);
 Z = pts(3, :);
 
-% disp(X)
-% disp(Y)
-% disp(Z)
-
-
-
 hold on;
-
-% plot3(X, Y, Z, 'o');
 fill3(X, Y, Z, [0 0.5 0], 'FaceAlpha', 0.9);
 
 
 %% Earcut
-tris = [];
-n = size(pts, 2);
-disp(['Total vertex: ', num2str(n)]);
-if n > 3
 
+% if ~polyDirection3D(pts)
+%     pts = pts(:,end:-1:1);
+%     disp('Reverse the polygon order to anti-clockwise order');
+% end
+
+% pts = pts(:, end:-1:1);
+% tris = triangulate(pts(:, end:-1:1));
+
+tris = triangulate(pts);
+
+% disp(tris)
+
+function showPts(pts, offset)
+    persistent h_spts;
+    if ~isempty(h_spts)
+        delete(h_spts);
+    end
+    
+    for i = 1:size(pts, 2)
+        h_spts(i) = scatter(pts(1, i) + offset(1), pts(2, i) + offset(2), 'o');
+    end
 end
 
-disp(polyDirection3D(pts))
-
-disp(polyDirection3D(pts(:,end:-1:1)))
-
-tris = triangulate(pts(:,end:-1:1));
-disp(tris)
+function fill2D(pts, offset, color)
+    X = pts(1, :);
+    Y = pts(2, :);
+    X = X + offset(1);
+    Y = Y + offset(2);
+    fill(X, Y, color, 'FaceAlpha', 0.9);
+end
 
 function tris = triangulate(poly3D)
     % poly3D: 3×N Polygon points (clockwise order and no self-intersection)
     % tris:   3×3×T Triangle mesh in world coordinates
     
+    disp(poly3D)
+
     [poly2D, frame] = toLocal2D(poly3D);
-    
+
+    fill2D(poly2D, [6, 0], [0.5 0 0]);
+
     % Earcut
     tris2D = earClip2D(poly2D);
     
@@ -193,7 +207,7 @@ function flag = isEar2D(V, v_prev, v_curr, v_next, activeVerts)
     p_next = V(:, v_next);
     
     % Convex angle check (2D cross product)
-    e1 = p_prev - p_curr;
+    e1 = p_curr - p_prev;
     e2 = p_next - p_curr;
     cross_z = e1(1) * e2(2) - e1(2) * e2(1);
     
@@ -204,6 +218,9 @@ function flag = isEar2D(V, v_prev, v_curr, v_next, activeVerts)
     
     % Triangle internal check
     tri = [p_prev, p_curr, p_next];
+    
+    fill2D(tri, [6, 0], [0 0 0.5]);
+    showPts(tri, [6, 0]);
     
     for i = 1:length(activeVerts)
         v = activeVerts(i);
@@ -236,7 +253,7 @@ function flag = pointInTriangle2D(p, tri)
     denom = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3);
     
     % Degenerate triangle check
-    if abs(denom) < 1e-15
+    if abs(denom) < 1e-10
         flag = false;
         return;
     end
@@ -251,22 +268,22 @@ function flag = pointInTriangle2D(p, tri)
     flag = (a > eps) && (b > eps) && (c > eps);
 end
 
-function dir = polyDirection(pts)
-    n = size(pts, 2);
+% function dir = polyDirection(pts)
+%     n = size(pts, 2);
 
-    area = sum(pts(1, 1:n) .* pts(2, [2:n, 1]) - pts(1, [2:n, 1]) .* pts(2, 1:n));
+%     area = sum(pts(1, 1:n) .* pts(2, [2:n, 1]) - pts(1, [2:n, 1]) .* pts(2, 1:n));
 
-    dir = sign(area);
-end
+%     dir = sign(area);
+% end
 
-function dir = polyDirection3D(pts)
-    % Find the best direction of the polygon
-    normal = cross(pts(:, 2) - pts(:, 1), pts(:, 3) - pts(:, 1));
-    [~, maxDim] = max(abs(normal));
+% function dir = polyDirection3D(pts)
+%     % Find the best direction of the polygon
+%     normal = cross(pts(:, 2) - pts(:, 1), pts(:, 3) - pts(:, 1));
+%     [~, maxDim] = max(abs(normal));
 
-    % Project on other two dimensions
-    dims = setdiff([1, 2, 3], maxDim);
-    ptsProj = pts(dims, :);
+%     % Project on other two dimensions
+%     dims = setdiff([1, 2, 3], maxDim);
+%     ptsProj = pts(dims, :);
 
-    dir = polyDirection(ptsProj);
-end
+%     dir = polyDirection(ptsProj);
+% end
