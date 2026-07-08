@@ -43,6 +43,11 @@ disp(['Total entity: ', num2str(geoEnt.count)])
 
 geoEnt.renderAll();
 
+obj2.toTriangles();
+
+info = rendererinfo(gca);   % 需要 figure 句柄
+disp(info.GraphicsRenderer);
+
 % Config the lidar point cloud generator as AC1_lidar
 lidar = lidarPointCloudGenerator(...
     'AzimuthResolution', 0.625, ...                         % Horizontal resolution (degree)

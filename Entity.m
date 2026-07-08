@@ -19,6 +19,8 @@ classdef Entity < handle
         %% Surface handle
         face_h = [];    % Surface handle of entity
         pts = [];       % Lidar point cloud of top and bottom
+        aabb = [];      % Axis-aligned bounding box of entity
+        tri = [];       % Triangle indices of entity
     end
 
     methods
@@ -210,7 +212,8 @@ classdef Entity < handle
 
             % save the point cloud of top and bottom face
             % the point cloud is in local coordinates and has been aligned to the position of the entity
-            obj.pts = [pts_b, pts_t];
+            obj.pts = [pts_t, pts_b];
+            obj.aabb = [min(obj.pts, [], 2); max(obj.pts, [], 2)];
 
             % disp(['Total point cloud size: ', num2str(size(obj.pts, 2))])
 
@@ -256,6 +259,15 @@ classdef Entity < handle
                 0  sin(psi)  cos(psi)];
 
             R = Rz * Ry * Rx;  % Order: Rx * Ry * Rz
+        end
+
+        function toTriangles(obj)
+            % Convert the entity to triangles
+            if strcmp(obj.type, 'frustum')
+                pts_t = obj.pts(:, 1:obj.n);
+                % pts_b = obj.pts(:, obj.n+1: end);
+                disp(pts_t)
+            end
         end
     end
 
