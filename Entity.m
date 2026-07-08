@@ -17,7 +17,8 @@ classdef Entity < handle
         alignMode = 'midaxis';
 
         %% Surface handle
-        face_h = [];
+        face_h = [];    % Surface handle of entity
+        pts = [];       % Lidar point cloud of top and bottom
     end
 
     methods
@@ -154,9 +155,6 @@ classdef Entity < handle
             tilt_bottom = obj.rottb(1:3);  % Bottom face local tilt [theta, phi, psi]
             tilt_top = obj.rottb(4:6);     % Top face local tilt [theta, phi, psi]
 
-            % disp(tilt_bottom)
-            % disp(tilt_top)
-
             % Calculate bottom and top face center position
             % Get the center position from cen(1:3) and cen(4:6) respectively
             pos_bottom = obj.cen(1:3);
@@ -182,7 +180,7 @@ classdef Entity < handle
             pts_b = R_b * [x_b; y_b; z_b] + pos_bottom(:);
             pts_t = R_t * [x_t; y_t; z_t] + pos_top(:);
 
-            % ========== 4. 根据 alignMode 对齐到 pos ==========
+            % Align the entity to the position of the center of the frustum
             switch obj.alignMode
                 case 'centroid'
                     allPts = [pts_b, pts_t];
@@ -209,6 +207,12 @@ classdef Entity < handle
 
             pts_b = R_global * pts_b_shifted + obj.pos(:);
             pts_t = R_global * pts_t_shifted + obj.pos(:);
+
+            % save the point cloud of top and bottom face
+            % the point cloud is in local coordinates and has been aligned to the position of the entity
+            obj.pts = [pts_b, pts_t];
+
+            % disp(['Total point cloud size: ', num2str(size(obj.pts, 2))])
 
             % Bottom face
             X_bottom = pts_b(1, :);
@@ -240,16 +244,16 @@ classdef Entity < handle
             psi = angles(3);    % Around X axis
 
             Rz = [cos(theta)  -sin(theta)  0;
-                  sin(theta)   cos(theta)  0;
-                  0            0           1];
+                sin(theta)   cos(theta)  0;
+                0            0           1];
 
             Ry = [cos(phi)  0  sin(phi);
-                  0         1  0;
-                 -sin(phi)  0  cos(phi)];
+                0         1  0;
+                -sin(phi)  0  cos(phi)];
 
             Rx = [1  0         0;
-                  0  cos(psi) -sin(psi);
-                  0  sin(psi)  cos(psi)];
+                0  cos(psi) -sin(psi);
+                0  sin(psi)  cos(psi)];
 
             R = Rz * Ry * Rx;  % Order: Rx * Ry * Rz
         end
