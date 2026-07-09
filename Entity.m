@@ -16,6 +16,11 @@ classdef Entity < handle
         color(1, 3) double = [0.4, 0.6, 0.8];       % The color of entity
         alignMode = 'midaxis';
 
+        % render element
+        render_top = true;
+        render_bottom = true;
+        render_side = true;
+
         %% Surface handle
         face_h = [];    % Surface handle of entity
         pts = [];       % Lidar point cloud of top and bottom
@@ -34,8 +39,16 @@ classdef Entity < handle
             end
         end
 
-        % Set the position of the entity, mass center is [x, y, z]
-        % pos: [3, 1) double
+        % Set render element of the entity
+        % render_top: boolean, true = render top face, false = not render top face
+        % render_bottom: boolean, true = render bottom face, false = not render bottom face
+        % render_side: boolean, true = render side face, false = not render side face
+        function setRenderElement(obj, render_top, render_bottom, render_side)
+            obj.render_top = render_top;
+            obj.render_bottom = render_bottom;
+            obj.render_side = render_side;
+        end
+
         function setPos(obj, pos)
             obj.pos = pos;
         end
@@ -164,6 +177,10 @@ classdef Entity < handle
 
             % Generate ellipse cross-section
             theta = linspace(0, 2*pi, obj.n);
+            % theta = linspace(0, 2*pi, obj.n + 1);
+            % remove the last point, to avoid duplicate points
+            % theta(end) = [];
+            % disp(size(theta))
 
             % Bottom face ellipse (local coordinates)
             x_b = a_bottom * cos(theta);
@@ -234,9 +251,19 @@ classdef Entity < handle
 
             % Render on canvas
             hold on;
-            obj.face_h =[obj.face_h; surf(X, Y, Z, 'FaceColor', obj.color, 'EdgeColor', 'none', 'FaceAlpha', 0.8)];
-            obj.face_h =[obj.face_h; fill3(X_bottom, Y_bottom, Z_bottom, obj.color, 'FaceAlpha', 0.9)];
-            obj.face_h =[obj.face_h; fill3(X_top, Y_top, Z_top, obj.color, 'FaceAlpha', 0.9)];
+
+            if obj.render_side
+                obj.face_h =[obj.face_h; surf(X, Y, Z, 'FaceColor', obj.color, 'EdgeColor', 'none', 'FaceAlpha', 0.8)];
+            end
+
+            if obj.render_top
+                obj.face_h =[obj.face_h; fill3(X_top, Y_top, Z_top, obj.color, 'FaceAlpha', 0.9)];
+            end
+
+            if obj.render_bottom
+                obj.face_h =[obj.face_h; fill3(X_bottom, Y_bottom, Z_bottom, obj.color, 'FaceAlpha', 0.9)];
+            end
+            
         end
 
         % Euler rotation matrix
@@ -267,6 +294,15 @@ classdef Entity < handle
                 pts_t = obj.pts(:, 1:obj.n);
                 % pts_b = obj.pts(:, obj.n+1: end);
                 disp(pts_t)
+                tris = EarClip.clip(pts_t(:, 1:obj.n));
+
+                for i = 1:size(tris, 3)
+                    X = tris(1, :, i);
+                    Y = tris(2, :, i);
+                    Z = tris(3, :, i);
+
+                    fill3(X, Y, Z, [mod(i, 10) * 0.1, 0.5, 0], 'FaceAlpha', 0.9);
+                end
             end
         end
     end
