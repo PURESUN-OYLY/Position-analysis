@@ -25,7 +25,7 @@ classdef Entity < handle
         face_h = [];    % Surface handle of entity
         pts = [];       % Lidar point cloud of top and bottom
         aabb = [];      % Axis-aligned bounding box of entity
-        tri = [];       % Triangle indices of entity
+        tris = [];      % Triangle indices of entity
     end
 
     methods
@@ -296,18 +296,33 @@ classdef Entity < handle
         function toTriangles(obj)
             % Convert the entity to triangles
             if strcmp(obj.type, 'frustum')
-                pts_t = obj.pts(:, 1:obj.n);
-                % pts_b = obj.pts(:, obj.n+1: end);
-                disp(pts_t)
-                tris = EarClip.clip(pts_t(:, 1:obj.n));
+                % Initialize the triangles matrix
+                obj.tris = [];
 
-                for i = 1:size(tris, 3)
-                    X = tris(1, :, i);
-                    Y = tris(2, :, i);
-                    Z = tris(3, :, i);
-
-                    fill3(X, Y, Z, [mod(i, 10) * 0.1, 0.5, 0], 'FaceAlpha', 0.9);
+                % Earcut animation for top
+                if obj.render_top
+                    obj.tris = cat(3, obj.tris, EarClip.clip(obj.pts(:, 1:obj.n - 1)));
                 end
+
+                % Earcut animation for bottom
+                if obj.render_bottom
+                    obj.tris = cat(3, obj.tris, EarClip.clip(obj.pts(:, obj.n + 1:2 * obj.n - 1)));
+                end
+
+                % Earcut animation for side
+                if obj.render_side
+                    tris_s = [];
+
+                    pts_t = obj.pts(:, 1:obj.n);
+                    pts_b = obj.pts(:, obj.n + 1:2 * obj.n);
+
+                    for i = 1:obj.n - 1
+                        tris_s = cat(3, tris_s, [pts_t(:, i), pts_b(:, i), pts_b(:, i+1)]);
+                        tris_s = cat(3, tris_s, [pts_t(:, i), pts_t(:, i+1), pts_b(:, i+1)]);
+                    end
+                    obj.tris = cat(3, obj.tris, tris_s);
+                end
+                % Clip triangles for frustum face end
             end
         end
     end

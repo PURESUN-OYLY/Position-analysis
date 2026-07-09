@@ -11,7 +11,7 @@ axis vis3d;
 lidarFOV = [120 90];
 lidarRange = [0 70];
 
-n = 10;
+n = 6;
 
 view(45, 30);
 
@@ -34,6 +34,7 @@ obj2.setHeight(2)
 obj2.setAlignMode('bottom_cen')
 obj2.setN(n);
 obj2.setRenderElement(false, false, true);
+
 % obj2.setCen(1, 2, 3);
 
 obj3 = geoEnt.Create('frustum');
@@ -51,6 +52,20 @@ disp(['Total entity: ', num2str(geoEnt.count)])
 
 geoEnt.renderAll();
 
+obj1.toTriangles();
+obj2.toTriangles();
+obj3.toTriangles();
+
+tris_all = cat(3, obj1.tris, obj2.tris, obj3.tris);
+
+for i = 1:size(tris_all, 3)
+    X = tris_all(1, :, i);
+    Y = tris_all(2, :, i);
+    Z = tris_all(3, :, i);
+
+    fill3(X, Y, Z, [mod(i, 20) * 0.05, 0.5, 1 - mod(i, 20) * 0.05], 'FaceAlpha', 0.9);
+end
+
 % obj2.toTriangles();
 
 % % Get the renderer info
@@ -61,39 +76,64 @@ geoEnt.renderAll();
 %        1, 2, 3, 4, 5, 6, 7, 7, 6, 5, 4, 3, 2, 1, 0, 0, 0, 1, 1;
 %        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 % pts = obj1.pts;
-pts = obj1.pts;
-pts = pts + [10; 0; 0];
-% disp(pts)
-X = pts(1, :);
-Y = pts(2, :);
-Z = pts(3, :);
+% pts = obj1.pts;
+% pts = pts + [10; 0; 0];
+% % disp(pts)
+% X = pts(1, :);
+% Y = pts(2, :);
+% Z = pts(3, :);
 
-hold on;
+% hold on;
 % fill3(X(1:obj1.n-1), Y(1:obj1.n-1), Z(1:obj1.n-1), [0 0.5 0], 'FaceAlpha', 0.9);
 
 % fill3(X(obj1.n + 1:2*obj1.n-1), Y(obj1.n + 1:2*obj1.n-1), Z(obj1.n + 1:2*obj1.n-1), [0 0.5 0], 'FaceAlpha', 0.9);
 
 % Earcut animation for top
-tris = EarClip.clip(pts(:, 1:obj1.n - 1));
+% tris = EarClip.clip(pts(:, 1:obj1.n - 1));
 
-% Earcut animation for bottom
-tris_b = EarClip.clip(pts(:, obj1.n + 1:2 * obj1.n - 1));
+% % Earcut animation for bottom
+% tris_b = EarClip.clip(pts(:, obj1.n + 1:2 * obj1.n - 1));
 
-for i = 1:size(tris, 3)
-    X = tris(1, :, i);
-    Y = tris(2, :, i);
-    Z = tris(3, :, i);
+% tris_s = [];
 
-    fill3(X, Y, Z, [mod(i, 20) * 0.05, 0.5, 1 - mod(i, 20) * 0.05], 'FaceAlpha', 0.9);
-end
+% pts_t = pts(:, 1:obj1.n);
+% pts_b = pts(:, obj1.n + 1:2 * obj1.n);
 
-for i = 1:size(tris_b, 3)
-    X = tris_b(1, :, i);
-    Y = tris_b(2, :, i);
-    Z = tris_b(3, :, i);
+% disp(size(pts_b))
+% for i = 1:obj1.n - 1
+%     tris_s = cat(3, tris_s, [pts_t(:, i), pts_b(:, i), pts_b(:, i+1)]);
+%     tris_s = cat(3, tris_s, [pts_t(:, i), pts_t(:, i+1), pts_b(:, i+1)]);
+% end
 
-    fill3(X, Y, Z, [mod(i, 20) * 0.05, 0.5, 1 - mod(i, 20) * 0.05], 'FaceAlpha', 0.9);
-end
+% tris_all = cat(3, tris, tris_b, tris_s);
+
+% disp(size(tris_s))
+% disp(size(tris_b))
+% disp(size(tris_all))
+
+% for i = 1:size(tris_all, 3)
+%     X = tris_all(1, :, i);
+%     Y = tris_all(2, :, i);
+%     Z = tris_all(3, :, i);
+
+%     fill3(X, Y, Z, [mod(i, 20) * 0.05, 0.5, 1 - mod(i, 20) * 0.05], 'FaceAlpha', 0.9);
+% end
+
+% for i = 1:size(tris_b, 3)
+%     X = tris_b(1, :, i);
+%     Y = tris_b(2, :, i);
+%     Z = tris_b(3, :, i);
+
+%     fill3(X, Y, Z, [mod(i, 20) * 0.05, 0.5, 1 - mod(i, 20) * 0.05], 'FaceAlpha', 0.9);
+% end
+
+% for i = 1:size(tris_s, 3)
+%     X = tris_s(1, :, i);
+%     Y = tris_s(2, :, i);
+%     Z = tris_s(3, :, i);
+
+%     fill3(X, Y, Z, [mod(i, 20) * 0.05, 0.5, 1 - mod(i, 20) * 0.05], 'FaceAlpha', 0.9);
+% end
 
 % X = pts(1, :);
 % Y = pts(2, :);
