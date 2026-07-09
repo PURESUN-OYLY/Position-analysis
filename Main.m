@@ -1,4 +1,3 @@
-
 %% Test GeoEntity class
 
 % Clear the workspace
@@ -48,13 +47,24 @@ obj2.toTriangles();
 info = rendererinfo(gca);   % 需要 figure 句柄
 disp(info.GraphicsRenderer);
 
-% Config the lidar point cloud generator as AC1_lidar
-lidar = lidarPointCloudGenerator(...
-    'AzimuthResolution', 0.625, ...                         % Horizontal resolution (degree)
-    'ElevationResolution', 0.625, ...                       % Vertical resolution (degree)
-    'AzimuthLimits', [-lidarFOV(1)/2 lidarFOV(1)/2], ...    % Horizontal field of view (degree)
-    'ElevationLimits', [-lidarFOV(2)/2 lidarFOV(2)/2], ...  % Vertical field of view (degree)
-    'MaxRange', lidarRange(2), ...                          % Maximum range (meter)
-    'HasNoise', false, ...                                  % Enable noise (more realistic)
-    'HasOrganizedOutput', true, ...                         % Organized output (similar to image grid)
-    'HasEgoVehicle', false);                                % No ego vehicle point cloud
+pts = [0, 0, 0, 1, 0, 1, 2, 3, 4, 5, 4, 5, 5, 5, 4, 3, 2, 2, 1;
+       1, 2, 3, 4, 5, 6, 7, 7, 6, 5, 4, 3, 2, 1, 0, 0, 0, 1, 1;
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+X = pts(1, :);
+Y = pts(2, :);
+Z = pts(3, :);
+
+hold on;
+fill3(X, Y, Z, [0 0.5 0], 'FaceAlpha', 0.9);
+
+% Earcut animation animation
+tris = EarClip.clip(pts);
+
+for i = 1:size(tris, 3)
+    X = tris(1, :, i);
+    Y = tris(2, :, i);
+    Z = tris(3, :, i);
+
+    fill3(X, Y, Z, [mod(i, 10) * 0.1, 0.5, 0], 'FaceAlpha', 0.9);
+end
