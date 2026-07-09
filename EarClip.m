@@ -9,7 +9,7 @@ classdef EarClip < handle
             end
 
             [poly2D, frame] = EarClip.toLocal2D(poly);
-            EarClip.fill2D(poly2D, [6, 0], [0.5 0 0]);
+            % EarClip.fill2D(poly2D, [6, 0], [0.5 0 0]);
 
             % Earcut
             tris2D = EarClip.earClip2D(poly2D);
@@ -21,13 +21,13 @@ classdef EarClip < handle
 
     methods (Static, Access = private)
 
-        function fill2D(pts, offset, color)
-            X = pts(1, :);
-            Y = pts(2, :);
-            X = X + offset(1);
-            Y = Y + offset(2);
-            fill(X, Y, color, 'FaceAlpha', 0.9);
-        end
+        % function fill2D(pts, offset, color)
+        %     X = pts(1, :);
+        %     Y = pts(2, :);
+        %     X = X + offset(1);
+        %     Y = Y + offset(2);
+        %     fill(X, Y, color, 'FaceAlpha', 0.9);
+        % end
 
         function tris = toWorld3D(tris2D, frame)
             T = size(tris2D, 3);
@@ -99,7 +99,7 @@ classdef EarClip < handle
             % poly2D: 2×N local 2D vertices (assumed counter-clockwise, no-intersecting)
             % tris2D: 2×3×T output triangles (2D vertices)
 
-            h_pts = [];
+            % h_pts = [];  % Point display handles, for testing
 
             n = size(poly2D, 2);
 
@@ -131,14 +131,14 @@ classdef EarClip < handle
                     v_curr = vertices(i);
                     v_next = vertices(next_idx);
                     
-                    % Update point display
-                    if ~isempty(h_pts)
-                        delete(h_pts);
-                    end
+                    % % Update point display
+                    % if ~isempty(h_pts)
+                    %     delete(h_pts);
+                    % end
 
-                    h_pts(1) = scatter(V(1, v_prev) + 6, V(2, v_prev), 'o');
-                    h_pts(2) = scatter(V(1, v_curr) + 6, V(2, v_curr), 'o');
-                    h_pts(3) = scatter(V(1, v_next) + 6, V(2, v_next), 'o');
+                    % h_pts(1) = scatter(V(1, v_prev) + 6, V(2, v_prev), 'o');
+                    % h_pts(2) = scatter(V(1, v_curr) + 6, V(2, v_curr), 'o');
+                    % h_pts(3) = scatter(V(1, v_next) + 6, V(2, v_next), 'o');
 
                     % Check if the triangle is an ear triangle
                     if EarClip.isEar2D(V, v_prev, v_curr, v_next, vertices(1:numV))

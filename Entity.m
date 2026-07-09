@@ -39,6 +39,11 @@ classdef Entity < handle
             end
         end
 
+        % Set the number of points of the entity
+        function setN(obj, n)
+            obj.n = n;
+        end
+
         % Set render element of the entity
         % render_top: boolean, true = render top face, false = not render top face
         % render_bottom: boolean, true = render bottom face, false = not render bottom face
@@ -263,7 +268,7 @@ classdef Entity < handle
             if obj.render_bottom
                 obj.face_h =[obj.face_h; fill3(X_bottom, Y_bottom, Z_bottom, obj.color, 'FaceAlpha', 0.9)];
             end
-            
+
         end
 
         % Euler rotation matrix
