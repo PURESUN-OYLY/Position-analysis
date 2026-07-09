@@ -5,6 +5,7 @@ close all;  % Close all the figure
 axis equal; % Set the axis equal, to show the entity in the same size
 axis vis3d;
 
+
 pts = [0, 0, 0, 1, 0, 1, 2, 3, 4, 5, 4, 5, 5, 5, 4, 3, 2, 2, 1;
        1, 2, 3, 4, 5, 6, 7, 7, 6, 5, 4, 3, 2, 1, 0, 0, 0, 1, 1;
        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -19,26 +20,115 @@ fill3(X, Y, Z, [0 0.5 0], 'FaceAlpha', 0.9);
 
 %% Earcut
 
-% if ~polyDirection3D(pts)
-%     pts = pts(:,end:-1:1);
-%     disp('Reverse the polygon order to anti-clockwise order');
-% end
+% Draw polygon outline
+plot([pts(1,:), pts(1,1)], [pts(2,:), pts(2,1)], 'k-', 'LineWidth', 1.5);
 
-% pts = pts(:, end:-1:1);
-% tris = triangulate(pts(:, end:-1:1));
+% Earcut animation animation
+earClip(pts);
 
-tris = triangulate(pts);
+% Earcut animation function
+function earClip(poly)
+    % Initialize handles
+    h_verts = [];   % Vertex handles
+    h_ear = [];     % Ear highlight handles
+    h_tris = [];    % Triangle handles
+    
+    % Check if the polygon is valid
+    if ~polyDirection3D(poly)
+        poly = poly(:,end:-1:1);
+        disp('Reverse the polygon order to anti-clockwise order');
+    end
 
-% disp(tris)
+    n = size(poly, 2);
+    vertices = 1:n;
+    numV = n;
+    V = poly;
+    
+    while numV > 3
+        earFound = false;
+        
+        drawnow;
+        for i = 1:numV
+            prev_idx = mod(i - 2 + numV, numV) + 1;
+            next_idx = mod(i, numV) + 1;
+            
+            v_prev = vertices(prev_idx);
+            v_curr = vertices(i);
+            v_next = vertices(next_idx);
+            
+            % showPts([v_prev, v_curr, v_next], [0, 0]);
+            if isEar2D(V, v_prev, v_curr, v_next, vertices(1:numV))
+                
+                % Clear old ear highlight handle
+                if ~isempty(h_ear) && isvalid(h_ear)
+                    delete(h_ear);
+                end
+                
+                % Highlight current ear
+                tri_x = [V(1,v_prev), V(1,v_curr), V(1,v_next), V(1,v_prev)];
+                tri_y = [V(2,v_prev), V(2,v_curr), V(2,v_next), V(2,v_prev)];
+                h_ear = fill(tri_x, tri_y, 'c', 'FaceAlpha', 0.5, 'EdgeColor', 'c');
+                
+                % Update vertex display
+                active_pts = V(:, vertices(1:numV));
+                h_verts = updateScatter(h_verts, active_pts(1,:), active_pts(2,:));
+                                
+                % Store clipped triangles
+                h_tris = addTri(h_tris, V(:, [v_prev, v_curr, v_next]));
+                
+                % Delete ear vertex point
+                vertices(i) = [];
+                numV = numV - 1;
+                earFound = true;
+                drawnow;
+                break;
+            end
+        end
+        
+        if ~earFound
+            error('Earcut failed');
+        end
+    end
+    
+    % Add the last triangle
+    addTri(h_tris, V(:, vertices(1:3)));
+    
+    % Clear ear highlight
+    if ~isempty(h_ear) && isvalid(h_ear)
+        delete(h_ear);
+    end
+end
+
+% Update scatter plot
+% h_old: Old scatter handle
+% x, y: New data points
+function h = updateScatter(h_old, x, y)
+    if ~isempty(h_old) && isvalid(h_old)
+        delete(h_old);
+    end
+    h = scatter(x, y, 50, 'r', 'filled');
+end
+
+% Add triangle
+% h_old: Old triangle handle
+% tri: New triangle points
+function h = addTri(h_old, tri)
+    if isempty(h_old)
+        h_old = [];
+    end
+    h_new = fill([tri(1,:), tri(1,1)], [tri(2,:), tri(2,1)], ...
+                 'b', 'FaceAlpha', 0.3, 'EdgeColor', 'none');
+    h = [h_old, h_new];   % Accumulate triangle handles
+end
 
 function showPts(pts, offset)
-    persistent h_spts;
-    if ~isempty(h_spts)
-        delete(h_spts);
+    persistent h_pts;
+    if ~isempty(h_pts)
+        delete(h_pts);
     end
     
     for i = 1:size(pts, 2)
-        h_spts(i) = scatter(pts(1, i) + offset(1), pts(2, i) + offset(2), 'o');
+        h_pts(i) = scatter(pts(1, i) + offset(1), pts(2, i) + offset(2), 'o');
     end
 end
 
@@ -219,8 +309,8 @@ function flag = isEar2D(V, v_prev, v_curr, v_next, activeVerts)
     % Triangle internal check
     tri = [p_prev, p_curr, p_next];
     
-    fill2D(tri, [6, 0], [0 0 0.5]);
-    showPts(tri, [6, 0]);
+    % fill2D(tri, [6, 0], [0 0 0.5]);
+    % showPts(tri, [0, 0]);
     
     for i = 1:length(activeVerts)
         v = activeVerts(i);
