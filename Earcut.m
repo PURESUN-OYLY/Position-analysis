@@ -32,6 +32,7 @@ function earClip(poly)
     h_verts = [];   % Vertex handles
     h_ear = [];     % Ear highlight handles
     h_tris = [];    % Triangle handles
+    h_pts = [];     % Point handles
     
     % Check if the polygon is valid
     if ~polyDirection3D(poly)
@@ -55,6 +56,15 @@ function earClip(poly)
             v_prev = vertices(prev_idx);
             v_curr = vertices(i);
             v_next = vertices(next_idx);
+
+            % Update point display
+            if ~isempty(h_pts)
+                delete(h_pts);
+            end
+    
+            h_pts(1) = scatter(V(1, v_prev), V(2, v_prev), 'o');
+            h_pts(2) = scatter(V(1, v_curr), V(2, v_curr), 'o');
+            h_pts(3) = scatter(V(1, v_next), V(2, v_next), 'o');
             
             % showPts([v_prev, v_curr, v_next], [0, 0]);
             if isEar2D(V, v_prev, v_curr, v_next, vertices(1:numV))
@@ -106,7 +116,7 @@ function h = updateScatter(h_old, x, y)
     if ~isempty(h_old) && isvalid(h_old)
         delete(h_old);
     end
-    h = scatter(x, y, 50, 'r', 'filled');
+    h = scatter(x, y, 10, 'r', 'filled');
 end
 
 % Add triangle
@@ -354,26 +364,26 @@ function flag = pointInTriangle2D(p, tri)
     c = 1 - a - b;
     
     % Strict internal check (excluding boundary, to avoid colinear vertex problem)
-    eps = 1e-10;
+    eps = -1e-10;
     flag = (a > eps) && (b > eps) && (c > eps);
 end
 
-% function dir = polyDirection(pts)
-%     n = size(pts, 2);
+function dir = polyDirection(pts)
+    n = size(pts, 2);
 
-%     area = sum(pts(1, 1:n) .* pts(2, [2:n, 1]) - pts(1, [2:n, 1]) .* pts(2, 1:n));
+    area = sum(pts(1, 1:n) .* pts(2, [2:n, 1]) - pts(1, [2:n, 1]) .* pts(2, 1:n));
 
-%     dir = sign(area);
-% end
+    dir = sign(area);
+end
 
-% function dir = polyDirection3D(pts)
-%     % Find the best direction of the polygon
-%     normal = cross(pts(:, 2) - pts(:, 1), pts(:, 3) - pts(:, 1));
-%     [~, maxDim] = max(abs(normal));
+function dir = polyDirection3D(pts)
+    % Find the best direction of the polygon
+    normal = cross(pts(:, 2) - pts(:, 1), pts(:, 3) - pts(:, 1));
+    [~, maxDim] = max(abs(normal));
 
-%     % Project on other two dimensions
-%     dims = setdiff([1, 2, 3], maxDim);
-%     ptsProj = pts(dims, :);
+    % Project on other two dimensions
+    dims = setdiff([1, 2, 3], maxDim);
+    ptsProj = pts(dims, :);
 
-%     dir = polyDirection(ptsProj);
-% end
+    dir = polyDirection(ptsProj);
+end
