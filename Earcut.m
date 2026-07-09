@@ -15,131 +15,40 @@ Y = pts(2, :);
 Z = pts(3, :);
 
 hold on;
-fill3(X, Y, Z, [0 0.5 0], 'FaceAlpha', 0.9);
+% fill3(X, Y, Z, [0 0.5 0], 'FaceAlpha', 0.9);
 
 
 %% Earcut
 
 % Draw polygon outline
-plot([pts(1,:), pts(1,1)], [pts(2,:), pts(2,1)], 'k-', 'LineWidth', 1.5);
+% plot([pts(1,:), pts(1,1)], [pts(2,:), pts(2,1)], 'k-', 'LineWidth', 1.5);
 
 % Earcut animation animation
-earClip(pts);
+tris = earClip(pts);
+
+for i = 1:size(tris, 3)
+    X = tris(1, :, i);
+    Y = tris(2, :, i);
+    Z = tris(3, :, i);
+
+    fill3(X, Y, Z, [mod(i, 10) * 0.1, 0.5, 0], 'FaceAlpha', 0.9);
+end
 
 % Earcut animation function
-function earClip(poly)
-    % Initialize handles
-    h_verts = [];   % Vertex handles
-    h_ear = [];     % Ear highlight handles
-    h_tris = [];    % Triangle handles
-    h_pts = [];     % Point handles
-    
+function tris = earClip(poly)
     % Check if the polygon is valid
     if ~polyDirection3D(poly)
         poly = poly(:,end:-1:1);
         disp('Reverse the polygon order to anti-clockwise order');
     end
 
-    n = size(poly, 2);
-    vertices = 1:n;
-    numV = n;
-    V = poly;
+    [poly2D, frame] = toLocal2D(poly);
+    fill2D(poly2D, [6, 0], [0.5 0 0]);
+    % Earcut
+    tris2D = earClip2D(poly2D);
     
-    while numV > 3
-        earFound = false;
-        
-        drawnow;
-        for i = 1:numV
-            prev_idx = mod(i - 2 + numV, numV) + 1;
-            next_idx = mod(i, numV) + 1;
-            
-            v_prev = vertices(prev_idx);
-            v_curr = vertices(i);
-            v_next = vertices(next_idx);
-
-            % Update point display
-            if ~isempty(h_pts)
-                delete(h_pts);
-            end
-    
-            h_pts(1) = scatter(V(1, v_prev), V(2, v_prev), 'o');
-            h_pts(2) = scatter(V(1, v_curr), V(2, v_curr), 'o');
-            h_pts(3) = scatter(V(1, v_next), V(2, v_next), 'o');
-            
-            % showPts([v_prev, v_curr, v_next], [0, 0]);
-            if isEar2D(V, v_prev, v_curr, v_next, vertices(1:numV))
-                
-                % Clear old ear highlight handle
-                if ~isempty(h_ear) && isvalid(h_ear)
-                    delete(h_ear);
-                end
-                
-                % Highlight current ear
-                tri_x = [V(1,v_prev), V(1,v_curr), V(1,v_next), V(1,v_prev)];
-                tri_y = [V(2,v_prev), V(2,v_curr), V(2,v_next), V(2,v_prev)];
-                h_ear = fill(tri_x, tri_y, 'c', 'FaceAlpha', 0.5, 'EdgeColor', 'c');
-                
-                % Update vertex display
-                active_pts = V(:, vertices(1:numV));
-                h_verts = updateScatter(h_verts, active_pts(1,:), active_pts(2,:));
-                                
-                % Store clipped triangles
-                h_tris = addTri(h_tris, V(:, [v_prev, v_curr, v_next]));
-                
-                % Delete ear vertex point
-                vertices(i) = [];
-                numV = numV - 1;
-                earFound = true;
-                drawnow;
-                break;
-            end
-        end
-        
-        if ~earFound
-            error('Earcut failed');
-        end
-    end
-    
-    % Add the last triangle
-    addTri(h_tris, V(:, vertices(1:3)));
-    
-    % Clear ear highlight
-    if ~isempty(h_ear) && isvalid(h_ear)
-        delete(h_ear);
-    end
-end
-
-% Update scatter plot
-% h_old: Old scatter handle
-% x, y: New data points
-function h = updateScatter(h_old, x, y)
-    if ~isempty(h_old) && isvalid(h_old)
-        delete(h_old);
-    end
-    h = scatter(x, y, 10, 'r', 'filled');
-end
-
-% Add triangle
-% h_old: Old triangle handle
-% tri: New triangle points
-function h = addTri(h_old, tri)
-    if isempty(h_old)
-        h_old = [];
-    end
-    h_new = fill([tri(1,:), tri(1,1)], [tri(2,:), tri(2,1)], ...
-                 'b', 'FaceAlpha', 0.3, 'EdgeColor', 'none');
-    h = [h_old, h_new];   % Accumulate triangle handles
-end
-
-function showPts(pts, offset)
-    persistent h_pts;
-    if ~isempty(h_pts)
-        delete(h_pts);
-    end
-    
-    for i = 1:size(pts, 2)
-        h_pts(i) = scatter(pts(1, i) + offset(1), pts(2, i) + offset(2), 'o');
-    end
+    % Project to 3D
+    tris = toWorld3D(tris2D, frame);
 end
 
 function fill2D(pts, offset, color)
@@ -148,23 +57,6 @@ function fill2D(pts, offset, color)
     X = X + offset(1);
     Y = Y + offset(2);
     fill(X, Y, color, 'FaceAlpha', 0.9);
-end
-
-function tris = triangulate(poly3D)
-    % poly3D: 3×N Polygon points (clockwise order and no self-intersection)
-    % tris:   3×3×T Triangle mesh in world coordinates
-    
-    disp(poly3D)
-
-    [poly2D, frame] = toLocal2D(poly3D);
-
-    fill2D(poly2D, [6, 0], [0.5 0 0]);
-
-    % Earcut
-    tris2D = earClip2D(poly2D);
-    
-    % Project to 3D
-    tris = toWorld3D(tris2D, frame);
 end
 
 function tris = toWorld3D(tris2D, frame)
