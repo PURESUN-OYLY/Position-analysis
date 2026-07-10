@@ -76,13 +76,14 @@ classdef AC1 < handle
 
             for e = 1:length(entities)
                 entity = entities(e);
+                disp(entity.aabb)
 
-                aabbHit = RayIntersector.rayAABBIntersect(origins, dirs, entity.aabb);
+                aabbHit = AC1.rayAABBIntersect(origins, dirs, entity.aabb);
                 if ~any(aabbHit), continue; end
 
                 active = find(aabbHit);
                 [entityHit, t, ~, ~, eTriIdx] = ...
-                    RayIntersector.intersectBatch(origins(:, active), dirs(:, active), entity.tris);
+                    AC1.intersectBatch(origins(:, active), dirs(:, active), entity.tris);
 
                 for i = 1:length(active)
                     r = active(i);
@@ -105,6 +106,91 @@ classdef AC1 < handle
             Rx = [1 0 0; 0 cos(pitch) -sin(pitch); 0 sin(pitch) cos(pitch)];
             Ry = [cos(roll) 0 sin(roll); 0 1 0; -sin(roll) 0 cos(roll)];
             R = Rz * Rx * Ry;
+        end
+    end
+    methods (Static, Access = private)
+        % AABB intersection
+        function hit = rayAABBIntersect(origins, dirs, aabb)
+            % N = size(origins, 2);
+            minB = aabb(1:3);
+            maxB = aabb(4:6);
+
+            inv_dir = 1 ./ dirs;
+            inv_dir(abs(dirs) < 1e-15) = inf;
+
+            t1 = (minB - origins) .* inv_dir;
+            t2 = (maxB - origins) .* inv_dir;
+
+            tmin = min(t1, t2);
+            tmax = max(t1, t2);
+
+            t_enter = max(tmin, [], 1);
+            t_exit = min(tmax, [], 1);
+
+            hit = (t_enter < t_exit) & (t_exit > 0);
+        end
+
+        % Triangle batch intersection
+        function [hit, t, u, v, tri_idx] = intersectBatch(origins, dirs, tris)
+            N = size(origins, 2);
+            T = size(tris, 3);
+            eps = 1e-7;
+
+            hit = false(1, N);
+            t = inf(1, N);
+            u = zeros(1, N);
+            v = zeros(1, N);
+            tri_idx = zeros(1, N);
+
+            for i = 1:T
+                v0 = tris(:, 1, i);
+                v1 = tris(:, 2, i);
+                v2 = tris(:, 3, i);
+
+                e1 = v1 - v0;
+                e2 = v2 - v0;
+
+                for r = 1:N
+                    if t(r) < 0
+                        continue;
+                    end
+
+                    rd = dirs(:, r);
+                    ro = origins(:, r);
+
+                    h = cross(rd, e2);
+                    a = dot(e1, h);
+
+                    if abs(a) < eps
+                        continue;
+                    end
+
+                    f = 1.0 / a;
+                    s = ro - v0;
+                    u_val = f * dot(s, h);
+
+                    if u_val < 0.0 || u_val > 1.0
+                        continue;
+                    end
+
+                    q = cross(s, e1);
+                    v_val = f * dot(rd, q);
+
+                    if v_val < 0.0 || u_val + v_val > 1.0
+                        continue;
+                    end
+
+                    t_val = f * dot(e2, q);
+
+                    if t_val > eps && t_val < t(r)
+                        t(r) = t_val;
+                        hit(r) = true;
+                        u(r) = u_val;
+                        v(r) = v_val;
+                        tri_idx(r) = i;
+                    end
+                end
+            end
         end
     end
 end

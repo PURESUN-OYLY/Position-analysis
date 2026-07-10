@@ -60,22 +60,23 @@ obj3.toTriangles();
 % Concatenate all triangles for frustum
 tris_all = cat(3, obj1.tris, obj2.tris, obj3.tris);
 
-% Render all triangles for frustum
-for i = 1:size(tris_all, 3)
-    X = tris_all(1, :, i);
-    Y = tris_all(2, :, i);
-    Z = tris_all(3, :, i);
+% % Render all triangles for frustum
+% for i = 1:size(tris_all, 3)
+%     X = tris_all(1, :, i);
+%     Y = tris_all(2, :, i);
+%     Z = tris_all(3, :, i);
 
-    fill3(X, Y, Z, [mod(i, 20) * 0.05, 0.5, 1 - mod(i, 20) * 0.05], 'FaceAlpha', 0.9);
-end
+%     fill3(X, Y, Z, [mod(i, 20) * 0.05, 0.5, 1 - mod(i, 20) * 0.05], 'FaceAlpha', 0.9);
+% end
 
-
-disp(obj1.aabb)
-obj3.drawAABB();
+% obj3.drawAABB();
 
 
-% lidar = AC1();
+lidar = AC1([10, 10, 15], 90);
 
-% [points, ranges, triIdxs] = lidar.scan(geoEnt.entityList);
+[points, ranges, triIdxs] = lidar.scan(geoEnt.entityList);
+% disp(points)
+scatter3(lidar.origins(1,:), lidar.origins(2,:), lidar.origins(3,:), 10, 'g', 'filled');
+scatter3(points(1,:), points(2,:), points(3,:), 10, 'red', 'filled');
 
 % disp(length(points))
