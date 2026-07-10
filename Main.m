@@ -68,3 +68,14 @@ for i = 1:size(tris_all, 3)
 
     fill3(X, Y, Z, [mod(i, 20) * 0.05, 0.5, 1 - mod(i, 20) * 0.05], 'FaceAlpha', 0.9);
 end
+
+
+disp(obj1.aabb)
+obj3.drawAABB();
+
+
+% lidar = AC1();
+
+% [points, ranges, triIdxs] = lidar.scan(geoEnt.entityList);
+
+% disp(length(points))
