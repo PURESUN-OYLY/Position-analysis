@@ -4,6 +4,12 @@ classdef Axis < handle
         ax_size = 1;
         origin_pt = [0, 0, 0];
         rotate_ang = [0, 0, 0];
+
+        visiable = true;
+        rendered = false;
+
+        h_surf = [];
+        h_fill = [];
     end
 
     methods
@@ -47,6 +53,7 @@ classdef Axis < handle
 
 
             % Rotate axis's elements
+            disp(obj.rotate_ang)
             [Xx, Yx, Zx] = Axis.rotateMesh(Xx, Yx, Zx, obj.origin_pt, 'x', obj.rotate_ang(1));
             [Xy, Yy, Zy] = Axis.rotateMesh(Xy, Yy, Zy, obj.origin_pt, 'y', - obj.rotate_ang(2));
             [Xz, Yz, Zz] = Axis.rotateMesh(Xz, Yz, Zz, obj.origin_pt, 'z', obj.rotate_ang(3));
@@ -64,25 +71,36 @@ classdef Axis < handle
             hold on;
 
             % surf origin point
-            surf(Xo, Yo, Zo, 'FaceColor', 'w', 'EdgeColor', 'none', 'FaceAlpha', axis_alpha);
+            obj.h_surf = [obj.h_surf; surf(Xo, Yo, Zo, 'FaceColor', 'w', 'EdgeColor', 'none', 'FaceAlpha', axis_alpha)];
             % surf body of axises
-            surf(Xx, Yx, Zx, 'FaceColor', clr_x, 'EdgeColor', 'none', 'FaceAlpha', axis_alpha);
-            surf(Xy, Yy, Zy, 'FaceColor', clr_y, 'EdgeColor', 'none', 'FaceAlpha', axis_alpha);
-            surf(Xz, Yz, Zz, 'FaceColor', clr_z, 'EdgeColor', 'none', 'FaceAlpha', axis_alpha);
+            obj.h_surf = [obj.h_surf; surf(Xx, Yx, Zx, 'FaceColor', clr_x, 'EdgeColor', 'none', 'FaceAlpha', axis_alpha)];
+            obj.h_surf = [obj.h_surf; surf(Xy, Yy, Zy, 'FaceColor', clr_y, 'EdgeColor', 'none', 'FaceAlpha', axis_alpha)];
+            obj.h_surf = [obj.h_surf; surf(Xz, Yz, Zz, 'FaceColor', clr_z, 'EdgeColor', 'none', 'FaceAlpha', axis_alpha)];
             % surf head of axises
-            surf(Xxh, Yxh, Zxh, 'FaceColor', clr_x, 'EdgeColor', 'none', 'FaceAlpha', axis_alpha);
-            fill3(Xxh(1, :), Yxh(1, :), Zxh(1, :), clr_x, 'EdgeColor', 'none', 'FaceAlpha', axis_alpha);
-            surf(Xyh, Yyh, Zyh, 'FaceColor', clr_y, 'EdgeColor', 'none', 'FaceAlpha', axis_alpha);
-            fill3(Xyh(1, :), Yyh(1, :), Zyh(1, :), clr_y, 'EdgeColor', 'none', 'FaceAlpha', axis_alpha);
-            surf(Xzh, Yzh, Zzh, 'FaceColor', clr_z, 'EdgeColor', 'none', 'FaceAlpha', axis_alpha);
-            fill3(Xzh(1, :), Yzh(1, :), Zzh(1, :), clr_z, 'EdgeColor', 'none', 'FaceAlpha', axis_alpha);
+            obj.h_surf = [obj.h_surf; surf(Xxh, Yxh, Zxh, 'FaceColor', clr_x, 'EdgeColor', 'none', 'FaceAlpha', axis_alpha)];
+            obj.h_fill = [obj.h_fill; fill3(Xxh(1, :), Yxh(1, :), Zxh(1, :), clr_x, 'EdgeColor', 'none', 'FaceAlpha', axis_alpha)];
+            obj.h_surf = [obj.h_surf; surf(Xyh, Yyh, Zyh, 'FaceColor', clr_y, 'EdgeColor', 'none', 'FaceAlpha', axis_alpha)];
+            obj.h_fill = [obj.h_fill; fill3(Xyh(1, :), Yyh(1, :), Zyh(1, :), clr_y, 'EdgeColor', 'none', 'FaceAlpha', axis_alpha)];
+            obj.h_surf = [obj.h_surf; surf(Xzh, Yzh, Zzh, 'FaceColor', clr_z, 'EdgeColor', 'none', 'FaceAlpha', axis_alpha)];
+            obj.h_fill = [obj.h_fill; fill3(Xzh(1, :), Yzh(1, :), Zzh(1, :), clr_z, 'EdgeColor', 'none', 'FaceAlpha', axis_alpha)];
 
-            hold off;
-
-            lighting gouraud; camlight; axis equal;
+            obj.rendered = true;
         end
 
-
+        function togView(obj)
+            if obj.rendered
+                obj.visiable = ~obj.visiable;
+                if obj.visiable
+                    set(obj.h_surf, 'Visible', 'on');
+                    set(obj.h_fill, 'Visible', 'on');
+                else
+                    set(obj.h_surf, 'Visible', 'off');
+                    set(obj.h_fill, 'Visible', 'off');
+                end
+            else
+                obj.render();
+            end
+        end
 
     end
     methods (Static)

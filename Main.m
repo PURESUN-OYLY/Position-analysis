@@ -75,10 +75,9 @@ tris_all = cat(3, obj1.tris, obj2.tris, obj3.tris);
 lidar = AC1([10, 10, 15], 90);
 
 [points, ranges, triIdxs] = lidar.scan(geoEnt.entityList);
-% disp(points)
-scatter3(lidar.origins(1,:), lidar.origins(2,:), lidar.origins(3,:), 10, 'g', 'filled');
 scatter3(points(1,:), points(2,:), points(3,:), 10, 'red', 'filled');
-laxis = Axis([10, 10, 15], [0, pi / 2, 0], 10);
+
+laxis = Axis([10, 10, 15], [0, pi, 0], 10);
 laxis.render();
 
 

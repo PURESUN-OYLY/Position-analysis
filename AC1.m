@@ -76,7 +76,6 @@ classdef AC1 < handle
 
             for e = 1:length(entities)
                 entity = entities(e);
-                disp(entity.aabb)
 
                 aabbHit = AC1.rayAABBIntersect(origins, dirs, entity.aabb);
                 if ~any(aabbHit), continue; end
@@ -108,7 +107,7 @@ classdef AC1 < handle
             R = Rz * Rx * Ry;
         end
     end
-    
+
     methods (Static, Access = private)
         % AABB intersection
         function hit = rayAABBIntersect(origins, dirs, aabb)
