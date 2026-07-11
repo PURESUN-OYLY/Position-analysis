@@ -269,6 +269,8 @@ classdef Entity < handle
                 obj.face_h =[obj.face_h; fill3(X_bottom, Y_bottom, Z_bottom, obj.color, 'FaceAlpha', 0.9)];
             end
 
+            % hold off;
+
         end
 
         function drawAABB(obj)

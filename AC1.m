@@ -108,6 +108,7 @@ classdef AC1 < handle
             R = Rz * Rx * Ry;
         end
     end
+    
     methods (Static, Access = private)
         % AABB intersection
         function hit = rayAABBIntersect(origins, dirs, aabb)
