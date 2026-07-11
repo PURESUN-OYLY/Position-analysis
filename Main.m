@@ -72,12 +72,13 @@ tris_all = cat(3, obj1.tris, obj2.tris, obj3.tris);
 % obj3.drawAABB();
 
 
-lidar = AC1([10, 10, 15], 90);
+lidar = AC1([-20, -10, 15]);
 
 [points, ranges, triIdxs] = lidar.scan(geoEnt.entityList);
 scatter3(points(1,:), points(2,:), points(3,:), 10, 'red', 'filled');
+lidar.showScanRange();
 
-laxis = Axis([10, 10, 15], [0, pi, 0], 10);
+laxis = Axis([-20, -10, 15], [0, 0, 180], 10);
 laxis.render();
 
 

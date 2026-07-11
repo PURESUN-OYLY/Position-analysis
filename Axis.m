@@ -53,12 +53,15 @@ classdef Axis < handle
 
 
             % Rotate axis's elements
-            disp(obj.rotate_ang)
+            % disp(obj.rotate_ang)
             [Xx, Yx, Zx] = Axis.rotateMesh(Xx, Yx, Zx, obj.origin_pt, 'x', obj.rotate_ang(1));
-            [Xy, Yy, Zy] = Axis.rotateMesh(Xy, Yy, Zy, obj.origin_pt, 'y', - obj.rotate_ang(2));
+            [Xy, Yy, Zy] = Axis.rotateMesh(Xy, Yy, Zy, obj.origin_pt, 'y', obj.rotate_ang(2));
+            % disp(obj.origin_pt)
+            % disp(Xz)
             [Xz, Yz, Zz] = Axis.rotateMesh(Xz, Yz, Zz, obj.origin_pt, 'z', obj.rotate_ang(3));
+            % disp(Xz)
             [Xxh, Yxh, Zxh] = Axis.rotateMesh(Xxh, Yxh, Zxh, obj.origin_pt, 'x', obj.rotate_ang(1));
-            [Xyh, Yyh, Zyh] = Axis.rotateMesh(Xyh, Yyh, Zyh, obj.origin_pt, 'y', - obj.rotate_ang(2));
+            [Xyh, Yyh, Zyh] = Axis.rotateMesh(Xyh, Yyh, Zyh, obj.origin_pt, 'y', obj.rotate_ang(2));
             [Xzh, Yzh, Zzh] = Axis.rotateMesh(Xzh, Yzh, Zzh, obj.origin_pt, 'z', obj.rotate_ang(3));
 
 
