@@ -8,8 +8,8 @@ axis vis3d;
 %% Default unit: meter
 
 %% Base config
-lidarFOV = [120 90];
-lidarRange = [0 70];
+lidarFOV = [120, 90];
+lidarRange = [0, 1];
 
 n = 32;
 
@@ -19,8 +19,8 @@ geoEnt = GeoEntity();
 
 obj1 = geoEnt.Create('frustum');
 obj1.setPos([0, 0, 0]);
-obj1.setRad(3);
-obj1.setHeight(10)
+obj1.setRad(0.3);
+obj1.setHeight(1)
 obj1.setAlignMode('bottom_cen')
 obj1.setN(n);
 obj1.setRenderElement(false, true, true);
@@ -28,9 +28,9 @@ obj1.setRenderElement(false, true, true);
 % obj1.setCen([1, 2, 3, 1, 2, 0]);
 
 obj2 = geoEnt.Create('frustum');
-obj2.setPos([0, 0, 10]);
-obj2.setRad(1.5, 3);
-obj2.setHeight(2)
+obj2.setPos([0, 0, 1]);
+obj2.setRad(0.15, 0.3);
+obj2.setHeight(0.2)
 obj2.setAlignMode('bottom_cen')
 obj2.setN(n);
 obj2.setRenderElement(false, false, true);
@@ -38,9 +38,9 @@ obj2.setRenderElement(false, false, true);
 % obj2.setCen(1, 2, 3);
 
 obj3 = geoEnt.Create('frustum');
-obj3.setPos([0, 0, 12]);
-obj3.setRad(1.5);
-obj3.setHeight(1.5)
+obj3.setPos([0, 0, 1.2]);
+obj3.setRad(0.15);
+obj3.setHeight(0.15)
 obj3.setAlignMode('bottom_cen')
 obj3.setN(n);
 obj3.setRenderElement(true, false, true);
@@ -72,17 +72,19 @@ tris_all = cat(3, obj1.tris, obj2.tris, obj3.tris);
 % obj3.drawAABB();
 
 
-lidar = AC1([-20, -10, 15]);
+lidar = AC1([-1, 0, 0.6]);
+
+lidar.setRange(lidarRange);
+lidar.showScanRange(6, [0.3 0.8 1]);
+lidar.togView_ScanRangegrid(true);
+lidar.renderBody();
 
 [points, ranges, triIdxs] = lidar.scan(geoEnt.entityList);
 scatter3(points(1,:), points(2,:), points(3,:), 10, 'red', 'filled');
-lidar.showScanRange(6, [0.3 0.8 1]);
-lidar.togView_ScanRangegrid(true);
 
-laxis = Axis([-20, -10, 15], [0, 0, 180], 10);
+laxis = Axis([-1, 1, 0], [0, 0, 180], 10);
 laxis.render();
 laxis.togView();
-laxis.togView(true);
 
 
 % disp(length(points))

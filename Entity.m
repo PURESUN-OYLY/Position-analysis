@@ -273,36 +273,8 @@ classdef Entity < handle
 
         end
 
-        function drawAABB(obj)
-            minX = obj.aabb(1); minY = obj.aabb(2); minZ = obj.aabb(3);
-            maxX = obj.aabb(4); maxY = obj.aabb(5); maxZ = obj.aabb(6);
-
-            % 8 points of the frustum's aabb box
-            verts = [
-                minX, minY, minZ;  % 1
-                maxX, minY, minZ;  % 2
-                maxX, maxY, minZ;  % 3
-                minX, maxY, minZ;  % 4
-                minX, minY, maxZ;  % 5
-                maxX, minY, maxZ;  % 6
-                maxX, maxY, maxZ;  % 7
-                minX, maxY, maxZ;  % 8
-                ];
-
-            % 6 faces of the frustum's aabb box
-            faces = [
-                1, 2, 3, 4;   % Bottom (Z=min)
-                5, 6, 7, 8;   % Top (Z=max)
-                2, 6, 7, 3;   % Right (X=max)
-                1, 5, 8, 4;   % Left (X=min)
-                4, 3, 7, 8;   % Front (Y=max)
-                1, 2, 6, 5;   % Back (Y=min)
-                ];
-
-            % Render all faces for frustum's aabb box
-            patch('Vertices', verts, 'Faces', faces, ...
-                'FaceColor', [0.2 0.8 0.2], 'FaceAlpha', 0.3, ...
-                'EdgeColor', 'g', 'LineWidth', 1);
+        function hp = drawAABB(obj)
+            hp = Pub.drawAABB(obj.aabb);
         end
 
         % Euler rotation matrix

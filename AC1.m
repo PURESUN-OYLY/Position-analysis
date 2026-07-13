@@ -1,5 +1,9 @@
 classdef AC1 < handle
     properties
+        % The default parameters
+        n = 32;
+
+        % The position of the AC1 (world coordinates)
         pos = [0; 0; 0]         % 3×1 the position of the AC1 (world coordinates)
         yaw = 0                 % yaw angle (rad, around Z axis)
         pitch = 0               % pitch angle (rad, around Y axis)
@@ -12,13 +16,17 @@ classdef AC1 < handle
         res_v = 144             % vertical resolution
         range = [1, 70]
 
+        % AC1 body size [w, h, d]
+        body_size = [0.08, 0.095, 0.04];
+
         % The local directions of the AC1, default to -Z
         dirs_local              % 3×N local directions (default to -Z)
         origins                 % 3×N ray origins (repeat pos)
 
-        % display handle
+        % body display handle
         h_surf = [];
         h_fill = [];
+        h_patch = [];
 
         h_range_grid = [];
         range_grid_visible = true;
@@ -122,6 +130,58 @@ classdef AC1 < handle
             R = Rz * Rx * Ry;
         end
 
+        function setRange(obj, range)
+            obj.range = range;
+
+            % After setting the range, precompute the local directions
+            obj.dirs_local = obj.precomputeDirs();
+            obj.updateOrigins();
+        end
+
+        % Show lidar body
+        function renderBody(obj, color)
+            if nargin < 2
+                color = 'w';
+            end
+            % draw lazer ball
+            b_size = obj.body_size(3) * 0.5;
+
+            [X, Y, Z] = sphere(obj.n);
+            X = X * b_size + obj.pos(1);
+            Y = Y * b_size + obj.pos(2);
+            Z = Z * b_size + obj.pos(3);
+
+            obj.h_surf = surf(X, Y, Z, 'FaceColor', [0.4 0.4 0.4], 'EdgeColor', 'none');
+
+            % draw the lidar body
+            verts =[
+                % obj.body_size: [length, height, width]
+                0, obj.body_size(2) / 2, obj.body_size(1) / 2;
+                0, -obj.body_size(2) / 2, obj.body_size(1) / 2;
+                0, -obj.body_size(2) / 2, -obj.body_size(1) / 2;
+                0, obj.body_size(2) / 2, -obj.body_size(1) / 2;
+                -obj.body_size(3), obj.body_size(2) / 2, obj.body_size(1) / 2;
+                -obj.body_size(3), -obj.body_size(2) / 2, obj.body_size(1) / 2;
+                -obj.body_size(3), -obj.body_size(2) / 2, -obj.body_size(1) / 2;
+                -obj.body_size(3), obj.body_size(2) / 2, -obj.body_size(1) / 2;
+                ];
+
+            verts = verts + obj.pos';
+
+            faces =[
+                1, 2, 3, 4;
+                5, 6, 7, 8;
+                1, 4, 8, 5;
+                2, 3, 7, 6;
+                1, 2, 6, 5;
+                3, 4, 8, 7;
+                ];
+
+            obj.h_patch = patch('Vertices', verts, 'Faces', faces, ...
+                'FaceColor', color, 'EdgeColor', 'none', 'LineWidth', 1);
+        end
+
+        % Show the scan range
         function showScanRange(obj, grid, color)
             if nargin < 3
                 color = [0.3 0.8 1];
@@ -142,6 +202,7 @@ classdef AC1 < handle
             % Ray endpoints at the scan range
             spts = opts(:, idx) + dirs(:, idx) * obj.range(1);
             epts = opts(:, idx) + dirs(:, idx) * obj.range(2);
+            
 
             % Draw the scan range, main boundary lines
             hold on;
@@ -151,7 +212,7 @@ classdef AC1 < handle
                     [spts(2, i), epts(2, i)], ...
                     [spts(3, i), epts(3, i)], ...
                     'Color', color, 'LineWidth', 1);
-                
+
                 obj.h_range_grid = [obj.h_range_grid; hd];
             end
 
@@ -169,7 +230,7 @@ classdef AC1 < handle
 
                 colEnd = opts(:, colIdx) + dirs(:, colIdx) * obj.range(2);
                 hd = plot3(colEnd(1,:), colEnd(2,:), colEnd(3,:), 'Color', color, 'LineWidth', 1);
-                
+
                 obj.h_range_grid = [obj.h_range_grid; hd];
             end
 
@@ -183,7 +244,7 @@ classdef AC1 < handle
                 end
                 rowEnd = opts(:, rowIdx) + dirs(:, rowIdx) * obj.range(2);
                 hd = plot3(rowEnd(1,:), rowEnd(2,:), rowEnd(3,:), 'Color', color, 'LineWidth', 1);
-                
+
                 obj.h_range_grid = [obj.h_range_grid; hd];
             end
         end
