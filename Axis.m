@@ -31,9 +31,6 @@ classdef Axis < handle
         function render(obj)
             % Build sphere
             [X, Y, Z] = sphere(obj.n);
-            % Xo = X * 0.25 * obj.ax_size / 10 + obj.origin_pt(1);
-            % Yo = Y * 0.25 * obj.ax_size / 10 + obj.origin_pt(2);
-            % Zo = Z * 0.25 * obj.ax_size / 10 + obj.origin_pt(3);
             Xo = X * 0.25 * obj.ax_size / 10;
             Yo = Y * 0.25 * obj.ax_size / 10;
             Zo = Z * 0.25 * obj.ax_size / 10;
@@ -41,9 +38,6 @@ classdef Axis < handle
             % Build axis
             [Xz, Yz, Zz] = cylinder(0.15 * obj.ax_size / 10, obj.n);
             Zz = Zz * obj.ax_size;
-            % Xz = Xz + obj.origin_pt(1);
-            % Yz = Yz + obj.origin_pt(2);
-            % Zz = Zz + obj.origin_pt(3);
             [Xx, Yx, Zx] = Axis.rotateMesh(Xz, Yz, Zz, [0 0 0], 'y', pi / 2);
             [Xy, Yy, Zy] = Axis.rotateMesh(Xz, Yz, Zz, [0 0 0], 'x', - pi / 2);
 
@@ -51,9 +45,6 @@ classdef Axis < handle
             [Xzh, Yzh, Zzh] = cylinder([0.25 * obj.ax_size / 10, 0], obj.n);
             Zzh = Zzh * obj.ax_size / 10;
             Zzh = Zzh + obj.ax_size;
-            % Xzh = Xzh + obj.origin_pt(1);
-            % Yzh = Yzh + obj.origin_pt(2);
-            % Zzh = Zzh + obj.origin_pt(3);
             [Xxh, Yxh, Zxh] = Axis.rotateMesh(Xzh, Yzh, Zzh, [0 0 0], 'y', pi / 2);
             [Xyh, Yyh, Zyh] = Axis.rotateMesh(Xzh, Yzh, Zzh, [0 0 0], 'x', - pi / 2);
 
