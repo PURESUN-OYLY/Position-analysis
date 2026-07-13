@@ -8,8 +8,8 @@ classdef AC1 < handle
         % The default parameters of the AC1
         fov_h = deg2rad(120)    % horizontal FOV (rad)
         fov_v = deg2rad(90)     % vertical FOV (rad)
-        res_h = 384             % horizontal resolution
-        res_v = 288             % vertical resolution
+        res_h = 192             % horizontal resolution
+        res_v = 144             % vertical resolution
         range = [1, 70]
 
         % The local directions of the AC1, default to -Z
@@ -36,10 +36,13 @@ classdef AC1 < handle
         % Precompute local directions (default to -Z)
         function dirs = precomputeDirs(obj)
             % From Left to Right, from top to bottom
-            theta_h = linspace(-obj.fov_h/2, obj.fov_h/2, obj.res_h);
-            theta_v = linspace(-obj.fov_v/2, obj.fov_v/2, obj.res_v);
+            % The sequence of the matlab is anti-clockwise, so need to reverse the order
+            theta_h = linspace(obj.fov_h/2, -obj.fov_h/2, obj.res_h);
+            theta_v = linspace(obj.fov_v/2, -obj.fov_v/2, obj.res_v);
 
-            [TH, TV] = meshgrid(theta_h, theta_v);
+            [TH, TV] = ndgrid(theta_h, theta_v);
+            % disp(rad2deg(TH));
+            % disp(rad2deg(TV));
 
             % Total number of rays
             N = obj.res_h * obj.res_v;
@@ -53,6 +56,7 @@ classdef AC1 < handle
             dirs(2, :) = sin(phi) .* cos(theta);   % Y - Left
             dirs(3, :) = sin(theta);               % Z - Up
 
+            % disp(dirs);
             dirs = dirs ./ sqrt(sum(dirs.^2, 1));
         end
 
@@ -115,15 +119,11 @@ classdef AC1 < handle
             R = Rz * Rx * Ry;
         end
 
-        function showScanRange(obj, color)
-            % color: Scan range color
-
-            if nargin >= 2
-                disp(['User specified color: ', num2str(color)])
-            else
+        function showScanRange(obj, grid, color)
+            if nargin < 3
                 color = [0.3 0.8 1];
             end
-
+            % color: Scan range color
             [opts, dirs] = obj.getRays();
 
             % Total number of rays
@@ -131,12 +131,10 @@ classdef AC1 < handle
 
             % Corner indices
             idx = [1, ...               % Left top
-                obj.res_v, ...          % Right top
+                obj.res_h, ...          % Right top
                 N, ...                  % Right bottom
-                N - obj.res_v + 1, ...  % Left bottom
+                N - obj.res_h + 1, ...  % Left bottom
                 1];                     % Close to left top
-
-            disp(idx)
 
             % Ray endpoints at the scan range
             spts = opts(:, idx) + dirs(:, idx) * obj.range(1);
@@ -144,34 +142,42 @@ classdef AC1 < handle
 
             % Draw the scan range, main boundary lines
             hold on;
-            
+
             for i = 1:4
                 plot3([spts(1, i), epts(1, i)], ...
                     [spts(2, i), epts(2, i)], ...
                     [spts(3, i), epts(3, i)], ...
-                    'Color', [1 - (i - 1) * 0.25, (i - 1) * 0.25, 0], 'LineWidth', 1);
+                    'Color', color, 'LineWidth', 1);
             end
 
-            % 画远边界四条弧线（连接相邻角点）
-            % 上边界（第一行）
-            % topIdx = 1:obj.res_h;
-            % topEnd = origins(:, topIdx) + dirs(:, topIdx) * obj.range(2);
-            % plot3(topEnd(1,:), topEnd(2,:), topEnd(3,:), 'Color', color, 'LineWidth', 1);
+            % Draw the scan range
+            for i = 0:grid
+                if i == 0
+                    % First column
+                    colIdx = 1:obj.res_h:N;
+                elseif i == grid
+                    % Last column
+                    colIdx = obj.res_h:obj.res_h:N;
+                else
+                    colIdx = (floor(obj.res_h / grid) * i):obj.res_h:N;
+                end
 
-            % % 下边界（最后一行）
-            % botIdx = N-obj.res_h+1:N;
-            % botEnd = origins(:, botIdx) + dirs(:, botIdx) * obj.range(2);
-            % plot3(botEnd(1,:), botEnd(2,:), botEnd(3,:), 'Color', color, 'LineWidth', 1);
+                colEnd = opts(:, colIdx) + dirs(:, colIdx) * obj.range(2);
+                plot3(colEnd(1,:), colEnd(2,:), colEnd(3,:), 'Color', color, 'LineWidth', 1);
+            end
 
-            % % 左边界（第一列）
-            % leftIdx = 1:obj.res_h:N;
-            % leftEnd = origins(:, leftIdx) + dirs(:, leftIdx) * obj.range(2);
-            % plot3(leftEnd(1,:), leftEnd(2,:), leftEnd(3,:), 'Color', color, 'LineWidth', 1);
+            for i = 0:grid
+                if i == 0
+                    rowIdx = 1:(obj.res_h * (i + 1));
+                elseif i == grid
+                    rowIdx = N - obj.res_h + 1:N;
+                else
+                    rowIdx = (floor(i / grid * obj.res_v) - 1) * obj.res_h + 1:floor(i / grid * obj.res_v) * obj.res_h;
+                end
+                rowEnd = opts(:, rowIdx) + dirs(:, rowIdx) * obj.range(2);
+                plot3(rowEnd(1,:), rowEnd(2,:), rowEnd(3,:), 'Color', color, 'LineWidth', 1);
+            end
 
-            % % 右边界（最后一列）
-            % rightIdx = obj.res_h:obj.res_h:N;
-            % rightEnd = origins(:, rightIdx) + dirs(:, rightIdx) * obj.range(2);
-            % plot3(rightEnd(1,:), rightEnd(2,:), rightEnd(3,:), 'Color', color, 'LineWidth', 1);
         end
     end
 

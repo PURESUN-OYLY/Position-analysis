@@ -76,7 +76,7 @@ lidar = AC1([-20, -10, 15]);
 
 [points, ranges, triIdxs] = lidar.scan(geoEnt.entityList);
 scatter3(points(1,:), points(2,:), points(3,:), 10, 'red', 'filled');
-lidar.showScanRange();
+lidar.showScanRange(6);
 
 laxis = Axis([-20, -10, 15], [0, 0, 180], 10);
 laxis.render();
