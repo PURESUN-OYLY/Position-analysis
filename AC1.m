@@ -132,6 +132,14 @@ classdef AC1 < handle
             R = Rz * Rx * Ry;
         end
 
+        % Set the yaw, pitch, roll of the AC1
+        function setYawPitchRoll(obj, yaw, pitch, roll)
+            obj.yaw = yaw;
+            obj.pitch = pitch;
+            obj.roll = roll;
+        end
+
+        % Set the scan range
         function setRange(obj, range)
             obj.range = range;
 
@@ -168,7 +176,13 @@ classdef AC1 < handle
                 -obj.body_size(3), obj.body_size(2) / 2, -obj.body_size(1) / 2;
                 ];
 
-            verts = verts + obj.pos';
+            % Rotation matrix: yaw(Z) -> pitch(Y) -> roll(X)
+            R = obj.eulerRotation(obj.yaw, obj.pitch, obj.roll);
+            verts = R * verts';
+
+            % Translate to the position of the AC1
+            % form local coordinates system to world coordinates system
+            verts = verts' + obj.pos';
 
             faces =[
                 1, 2, 3, 4;
@@ -204,7 +218,7 @@ classdef AC1 < handle
             % Ray endpoints at the scan range
             spts = opts(:, idx) + dirs(:, idx) * obj.range(1);
             epts = opts(:, idx) + dirs(:, idx) * obj.range(2);
-            
+
 
             % Draw the scan range, main boundary lines
             hold on;

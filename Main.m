@@ -75,6 +75,7 @@ tris_all = cat(3, obj1.tris, obj2.tris, obj3.tris);
 lidar = AC1([-1, 0, 0.6]);
 
 lidar.setRange(lidarRange);
+lidar.setYawPitchRoll(deg2rad(45), deg2rad(30), 0);
 lidar.showScanRange(6, [0.3 0.8 1]);
 lidar.togView_ScanRangegrid(true);
 lidar.renderBody();

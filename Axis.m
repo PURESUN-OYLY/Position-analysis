@@ -112,8 +112,8 @@ classdef Axis < handle
         end
 
     end
+    
     methods (Static)
-
         function [Xr, Yr, Zr] = rotateMesh(X, Y, Z, center, axis, angle)
             % rotateMesh: rotate mesh around a center
             % center: [cx, cy, cz] the center of rotation
