@@ -90,9 +90,15 @@ classdef Axis < handle
             obj.rendered = true;
         end
 
-        function togView(obj)
-            if obj.rendered
+        % Toggle the visibility of the axis
+        function togView(obj, visiable)
+            if nargin < 2
                 obj.visiable = ~obj.visiable;
+            else
+                obj.visiable = visiable;
+            end
+
+            if obj.rendered
                 if obj.visiable
                     set(obj.h_surf, 'Visible', 'on');
                     set(obj.h_fill, 'Visible', 'on');

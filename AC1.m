@@ -19,6 +19,9 @@ classdef AC1 < handle
         % display handle
         h_surf = [];
         h_fill = [];
+
+        h_range_grid = [];
+        range_grid_visible = true;
     end
 
     methods
@@ -144,10 +147,12 @@ classdef AC1 < handle
             hold on;
 
             for i = 1:4
-                plot3([spts(1, i), epts(1, i)], ...
+                hd = plot3([spts(1, i), epts(1, i)], ...
                     [spts(2, i), epts(2, i)], ...
                     [spts(3, i), epts(3, i)], ...
                     'Color', color, 'LineWidth', 1);
+                
+                obj.h_range_grid = [obj.h_range_grid; hd];
             end
 
             % Draw the scan range
@@ -163,7 +168,9 @@ classdef AC1 < handle
                 end
 
                 colEnd = opts(:, colIdx) + dirs(:, colIdx) * obj.range(2);
-                plot3(colEnd(1,:), colEnd(2,:), colEnd(3,:), 'Color', color, 'LineWidth', 1);
+                hd = plot3(colEnd(1,:), colEnd(2,:), colEnd(3,:), 'Color', color, 'LineWidth', 1);
+                
+                obj.h_range_grid = [obj.h_range_grid; hd];
             end
 
             for i = 0:grid
@@ -175,9 +182,25 @@ classdef AC1 < handle
                     rowIdx = (floor(i / grid * obj.res_v) - 1) * obj.res_h + 1:floor(i / grid * obj.res_v) * obj.res_h;
                 end
                 rowEnd = opts(:, rowIdx) + dirs(:, rowIdx) * obj.range(2);
-                plot3(rowEnd(1,:), rowEnd(2,:), rowEnd(3,:), 'Color', color, 'LineWidth', 1);
+                hd = plot3(rowEnd(1,:), rowEnd(2,:), rowEnd(3,:), 'Color', color, 'LineWidth', 1);
+                
+                obj.h_range_grid = [obj.h_range_grid; hd];
+            end
+        end
+
+        % Toggle the visibility of the scan range grid
+        function togView_ScanRangegrid(obj, visiable)
+            if nargin < 2
+                obj.range_grid_visible = ~obj.range_grid_visible;
+            else
+                obj.range_grid_visible = visiable;
             end
 
+            if obj.range_grid_visible
+                set(obj.h_range_grid, 'Visible', 'on');
+            else
+                set(obj.h_range_grid, 'Visible', 'off');
+            end
         end
     end
 

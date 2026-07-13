@@ -1,11 +1,11 @@
-%% Test GeoEntity class
-
 % Clear the workspace
 clear;      % Clear the workspace
 clc;        % Clear the command window
 close all;  % Close all the figure
 axis equal; % Set the axis equal, to show the entity in the same size
 axis vis3d;
+
+%% Default unit: meter
 
 %% Base config
 lidarFOV = [120 90];
@@ -76,10 +76,13 @@ lidar = AC1([-20, -10, 15]);
 
 [points, ranges, triIdxs] = lidar.scan(geoEnt.entityList);
 scatter3(points(1,:), points(2,:), points(3,:), 10, 'red', 'filled');
-lidar.showScanRange(6);
+lidar.showScanRange(6, [0.3 0.8 1]);
+lidar.togView_ScanRangegrid(true);
 
 laxis = Axis([-20, -10, 15], [0, 0, 180], 10);
 laxis.render();
+laxis.togView();
+laxis.togView(true);
 
 
 % disp(length(points))
