@@ -9,7 +9,10 @@ axis vis3d;
 
 %% Base config
 lidarFOV = [120, 90];
-lidarRange = [0, 1];
+lidarRange = [0.1, 1];
+lidarpos = [-1, 0, 0.6];
+lidarYPR = [45, 30, 0];
+lidarYPR = deg2rad(lidarYPR);
 
 n = 32;
 
@@ -72,20 +75,18 @@ tris_all = cat(3, obj1.tris, obj2.tris, obj3.tris);
 % obj3.drawAABB();
 
 
-lidar = AC1([-1, 0, 0.6]);
+
+lidar = AC1(lidarpos);
 
 lidar.setRange(lidarRange);
-lidar.setYawPitchRoll(deg2rad(45), deg2rad(30), 0);
+lidar.setYawPitchRoll(lidarYPR);
 lidar.showScanRange(6, [0.3 0.8 1]);
 lidar.togView_ScanRangegrid(true);
 lidar.renderBody();
+lidar.showAxis();
 
 [points, ranges, triIdxs] = lidar.scan(geoEnt.entityList);
-scatter3(points(1,:), points(2,:), points(3,:), 10, 'red', 'filled');
-
-laxis = Axis([-1, 1, 0], [0, 0, 180], 10);
-laxis.render();
-laxis.togView();
+scatter3(points(1,:), points(2,:), points(3,:), 5, 'red', 'filled');
 
 
 % disp(length(points))

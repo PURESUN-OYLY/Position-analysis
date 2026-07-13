@@ -4,14 +4,15 @@ classdef AC1 < handle
         n = 32;
 
         % The position of the AC1 (world coordinates)
-        pos = [0; 0; 0]         % 3×1 the position of the AC1 (world coordinates)
-        yaw = 0                 % yaw angle (rad, around Z axis)
-        pitch = 0               % pitch angle (rad, around Y axis)
-        roll = 0                % roll angle (rad, around X axis)
+        pos = [0, 0, 0]         % 3×1 the position of the AC1 (world coordinates)
+
+        yaw = 0                 % yaw angle (radians, around Z axis)
+        pitch = 0               % pitch angle (radians, around Y axis)
+        roll = 0                % roll angle (radians, around X axis)
 
         % The default parameters of the AC1
-        fov_h = deg2rad(120)    % horizontal FOV (rad)
-        fov_v = deg2rad(90)     % vertical FOV (rad)
+        fov_h = deg2rad(120)    % horizontal FOV (radians)
+        fov_v = deg2rad(90)     % vertical FOV (radians)
         res_h = 192             % horizontal resolution
         res_v = 144             % vertical resolution
         range = [1, 70]
@@ -30,6 +31,8 @@ classdef AC1 < handle
 
         h_range_grid = [];
         range_grid_visible = true;
+
+        laxis = [];
     end
 
     methods
@@ -82,7 +85,7 @@ classdef AC1 < handle
             opts = obj.origins;
 
             % Rotation matrix: yaw(Z) -> pitch(Y) -> roll(X)
-            R = obj.eulerRotation(obj.yaw, obj.pitch, obj.roll);
+            R = Pub.eulerRotation(obj.yaw, obj.pitch, obj.roll);
 
             % Rotate local directions to world coordinates system
             dirs = R * obj.dirs_local;
@@ -125,18 +128,18 @@ classdef AC1 < handle
             triIdxs = triIdxs(hit);
         end
 
-        function R = eulerRotation(~, yaw, pitch, roll)
-            Rz = [cos(yaw) -sin(yaw) 0; sin(yaw) cos(yaw) 0; 0 0 1];
-            Rx = [1 0 0; 0 cos(pitch) -sin(pitch); 0 sin(pitch) cos(pitch)];
-            Ry = [cos(roll) 0 sin(roll); 0 1 0; -sin(roll) 0 cos(roll)];
-            R = Rz * Rx * Ry;
-        end
+        % function R = eulerRotation(~, yaw, pitch, roll)
+        %     Rz = [cos(yaw) -sin(yaw) 0; sin(yaw) cos(yaw) 0; 0 0 1];
+        %     Rx = [1 0 0; 0 cos(pitch) -sin(pitch); 0 sin(pitch) cos(pitch)];
+        %     Ry = [cos(roll) 0 sin(roll); 0 1 0; -sin(roll) 0 cos(roll)];
+        %     R = Rz * Rx * Ry;
+        % end
 
         % Set the yaw, pitch, roll of the AC1
-        function setYawPitchRoll(obj, yaw, pitch, roll)
-            obj.yaw = yaw;
-            obj.pitch = pitch;
-            obj.roll = roll;
+        function setYawPitchRoll(obj, YawPitchRoll)
+            obj.yaw = YawPitchRoll(1);
+            obj.pitch = YawPitchRoll(2);
+            obj.roll = YawPitchRoll(3);
         end
 
         % Set the scan range
@@ -177,7 +180,7 @@ classdef AC1 < handle
                 ];
 
             % Rotation matrix: yaw(Z) -> pitch(Y) -> roll(X)
-            R = obj.eulerRotation(obj.yaw, obj.pitch, obj.roll);
+            R = Pub.eulerRotation(obj.yaw, obj.pitch, obj.roll);
             verts = R * verts';
 
             % Translate to the position of the AC1
@@ -278,6 +281,11 @@ classdef AC1 < handle
             else
                 set(obj.h_range_grid, 'Visible', 'off');
             end
+        end
+
+        function showAxis(obj)
+            obj.laxis = Axis(obj.pos, [obj.yaw, obj.pitch, obj.roll], obj.range(2) / 5);
+            obj.laxis.render();
         end
     end
 

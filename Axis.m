@@ -3,7 +3,9 @@ classdef Axis < handle
         n = 32;
         ax_size = 1;
         origin_pt = [0, 0, 0];
-        rotate_ang = [0, 0, 0];
+
+        % Unit: radians
+        rotate_ang = [0, 0, 0]; % Standard Euler angles ZYX: yaw(Z) -> pitch(Y) -> roll(X)
 
         visiable = true;
         rendered = false;
@@ -15,7 +17,8 @@ classdef Axis < handle
     methods
         function obj = Axis(origin_pt, rotate_ang, ax_size)
             if nargin >= 1
-                obj.origin_pt = origin_pt;
+                % To ensure the obj.origin_pt is a row vector
+                obj.origin_pt = origin_pt(:)';
             end
             if nargin >= 2
                 obj.rotate_ang = rotate_ang;
@@ -28,42 +31,41 @@ classdef Axis < handle
         function render(obj)
             % Build sphere
             [X, Y, Z] = sphere(obj.n);
-            Xo = X * 0.25 * obj.ax_size / 10 + obj.origin_pt(1);
-            Yo = Y * 0.25 * obj.ax_size / 10 + obj.origin_pt(2);
-            Zo = Z * 0.25 * obj.ax_size / 10 + obj.origin_pt(3);
+            % Xo = X * 0.25 * obj.ax_size / 10 + obj.origin_pt(1);
+            % Yo = Y * 0.25 * obj.ax_size / 10 + obj.origin_pt(2);
+            % Zo = Z * 0.25 * obj.ax_size / 10 + obj.origin_pt(3);
+            Xo = X * 0.25 * obj.ax_size / 10;
+            Yo = Y * 0.25 * obj.ax_size / 10;
+            Zo = Z * 0.25 * obj.ax_size / 10;
 
             % Build axis
             [Xz, Yz, Zz] = cylinder(0.15 * obj.ax_size / 10, obj.n);
             Zz = Zz * obj.ax_size;
-            Xz = Xz + obj.origin_pt(1);
-            Yz = Yz + obj.origin_pt(2);
-            Zz = Zz + obj.origin_pt(3);
-            [Xx, Yx, Zx] = Axis.rotateMesh(Xz, Yz, Zz, obj.origin_pt, 'y', pi / 2);
-            [Xy, Yy, Zy] = Axis.rotateMesh(Xz, Yz, Zz, obj.origin_pt, 'x', - pi / 2);
+            % Xz = Xz + obj.origin_pt(1);
+            % Yz = Yz + obj.origin_pt(2);
+            % Zz = Zz + obj.origin_pt(3);
+            [Xx, Yx, Zx] = Axis.rotateMesh(Xz, Yz, Zz, [0 0 0], 'y', pi / 2);
+            [Xy, Yy, Zy] = Axis.rotateMesh(Xz, Yz, Zz, [0 0 0], 'x', - pi / 2);
 
             % Build axis head
             [Xzh, Yzh, Zzh] = cylinder([0.25 * obj.ax_size / 10, 0], obj.n);
             Zzh = Zzh * obj.ax_size / 10;
             Zzh = Zzh + obj.ax_size;
-            Xzh = Xzh + obj.origin_pt(1);
-            Yzh = Yzh + obj.origin_pt(2);
-            Zzh = Zzh + obj.origin_pt(3);
-            [Xxh, Yxh, Zxh] = Axis.rotateMesh(Xzh, Yzh, Zzh, obj.origin_pt, 'y', pi / 2);
-            [Xyh, Yyh, Zyh] = Axis.rotateMesh(Xzh, Yzh, Zzh, obj.origin_pt, 'x', - pi / 2);
+            % Xzh = Xzh + obj.origin_pt(1);
+            % Yzh = Yzh + obj.origin_pt(2);
+            % Zzh = Zzh + obj.origin_pt(3);
+            [Xxh, Yxh, Zxh] = Axis.rotateMesh(Xzh, Yzh, Zzh, [0 0 0], 'y', pi / 2);
+            [Xyh, Yyh, Zyh] = Axis.rotateMesh(Xzh, Yzh, Zzh, [0 0 0], 'x', - pi / 2);
 
 
             % Rotate axis's elements
-            % disp(obj.rotate_ang)
-            [Xx, Yx, Zx] = Axis.rotateMesh(Xx, Yx, Zx, obj.origin_pt, 'x', obj.rotate_ang(1));
-            [Xy, Yy, Zy] = Axis.rotateMesh(Xy, Yy, Zy, obj.origin_pt, 'y', obj.rotate_ang(2));
-            % disp(obj.origin_pt)
-            % disp(Xz)
-            [Xz, Yz, Zz] = Axis.rotateMesh(Xz, Yz, Zz, obj.origin_pt, 'z', obj.rotate_ang(3));
-            % disp(Xz)
-            [Xxh, Yxh, Zxh] = Axis.rotateMesh(Xxh, Yxh, Zxh, obj.origin_pt, 'x', obj.rotate_ang(1));
-            [Xyh, Yyh, Zyh] = Axis.rotateMesh(Xyh, Yyh, Zyh, obj.origin_pt, 'y', obj.rotate_ang(2));
-            [Xzh, Yzh, Zzh] = Axis.rotateMesh(Xzh, Yzh, Zzh, obj.origin_pt, 'z', obj.rotate_ang(3));
-
+            [Xo, Yo, Zo] = obj.localToWorld(Xo, Yo, Zo);
+            [Xx, Yx, Zx] = obj.localToWorld(Xx, Yx, Zx);
+            [Xy, Yy, Zy] = obj.localToWorld(Xy, Yy, Zy);
+            [Xz, Yz, Zz] = obj.localToWorld(Xz, Yz, Zz);
+            [Xxh, Yxh, Zxh] = obj.localToWorld(Xxh, Yxh, Zxh);
+            [Xyh, Yyh, Zyh] = obj.localToWorld(Xyh, Yyh, Zyh);
+            [Xzh, Yzh, Zzh] = obj.localToWorld(Xzh, Yzh, Zzh);
 
             % Render parameters, color and alpha
             clr_x = [1, 0.3, 0.3];
@@ -90,6 +92,19 @@ classdef Axis < handle
             obj.rendered = true;
         end
 
+        function [Xw, Yw, Zw] = localToWorld(obj, X, Y, Z)
+            % localToWorld: convert local coordinates to world coordinates
+            R = Pub.eulerRotation(obj.rotate_ang(1), obj.rotate_ang(2), obj.rotate_ang(3));
+            P = [X(:), Y(:), Z(:)];
+            P_rot = (R * P')';
+            
+            P_world = P_rot + obj.origin_pt;
+
+            Xw = reshape(P_world(:,1), size(X));
+            Yw = reshape(P_world(:,2), size(Y));
+            Zw = reshape(P_world(:,3), size(Z));
+        end
+
         % Toggle the visibility of the axis
         function togView(obj, visiable)
             if nargin < 2
@@ -112,7 +127,7 @@ classdef Axis < handle
         end
 
     end
-    
+
     methods (Static)
         function [Xr, Yr, Zr] = rotateMesh(X, Y, Z, center, axis, angle)
             % rotateMesh: rotate mesh around a center

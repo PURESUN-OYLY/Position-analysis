@@ -29,7 +29,7 @@ classdef Pub < handle
                 error('Invalid aabb box.');
             end
             disp(aabb);
-            
+
             if any(~isfinite(aabb)) || any(aabb(1:3) >= aabb(4:6))
                 error('Invalid AABB: [%f %f %f %f %f %f]', aabb);
             end
@@ -62,6 +62,15 @@ classdef Pub < handle
             hp = patch('Vertices', verts, 'Faces', faces, ...
                 'FaceColor', faceColor, 'FaceAlpha', faceAlpha, ...
                 'EdgeColor', edgeColor, 'LineWidth', lineWidth);
+        end
+
+        function R = eulerRotation(yaw, pitch, roll)
+            % Standard Euler angles ZYX: yaw(Z) -> pitch(Y) -> roll(X)
+            Rz = [cos(yaw) -sin(yaw) 0; sin(yaw) cos(yaw) 0; 0 0 1];
+            Ry = [cos(pitch) 0 sin(pitch); 0 1 0; -sin(pitch) 0 cos(pitch)];
+            Rx = [1 0 0; 0 cos(roll) -sin(roll); 0 sin(roll) cos(roll)];
+
+            R = Rz * Ry * Rx;
         end
     end
 end
