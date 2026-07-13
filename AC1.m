@@ -118,6 +118,8 @@ classdef AC1 < handle
                 end
             end
 
+            hit = hit & (ranges > obj.range(1)) & (ranges < obj.range(2));
+
             hitPoints = hitPoints(:, hit);
             ranges = ranges(hit);
             triIdxs = triIdxs(hit);
