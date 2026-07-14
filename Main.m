@@ -88,5 +88,14 @@ lidar.showAxis();
 [points, ranges, triIdxs] = lidar.scan(geoEnt.entityList);
 scatter3(points(1,:), points(2,:), points(3,:), 5, 'red', 'filled');
 
+function move(dir, value)
+    disp('Move has been clicked!')
+    disp([dir, value])
+    lidar.togView_ScanRangegrid();
+end
 
 % disp(length(points))
+rui = PannelUI(3, 10, [250 400], [400 400], 'Lidar Controller');
+rui.button(1, 1, 'Scan', @(~, ~) move('x', 0.1));
+rui.button(2, 2, 'Scan2', @(~, ~) move('y', 0.1));
+rui.button(3, 3, 'Scan3', @(~, ~) move('z', 0.1));
